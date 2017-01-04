@@ -1,0 +1,17 @@
+{
+  "name": "gameboy-typescript",
+  "version": "0.0.0",
+  "description": "A Gameboy emulator written in TypeScript",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "ember test"
+  },
+  "author": "Zachary Mulgrew",
+  "license": "MIT",
+  "devDependencies": {
+    "ember-cli": "^2.10.0"
+  }
+}
