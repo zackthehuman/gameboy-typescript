@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Gameboy Test Suite</title>
+  <link rel="stylesheet" href="qunit.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="qunit.js"></script>
+  <script src="/testem.js"></script>
+  <script src="/index.js"></script>
+  <script src="/worker/gameboy.js"></script>
+  <script src="all-tests.js"></script>
+
+  <style>
+    #qunit-tests.hidepass li.skipped {
+      display: none;
+    }
+  </style>
+</body>
+</html>
