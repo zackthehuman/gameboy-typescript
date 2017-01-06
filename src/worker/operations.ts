@@ -31,8 +31,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
   };
 
   return {
-    execOp(opconde: Opcode): number {
-      const cycles = Op[opconde.hi](opconde);
+    execOp(opcode: Opcode): number {
+      const cycles = Op[opcode.hi](opcode);
       vm.cycleCount += cycles;
       return cycles;
     }
