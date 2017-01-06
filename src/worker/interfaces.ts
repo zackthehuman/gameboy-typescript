@@ -1,9 +1,15 @@
 export interface Opcode {
   readonly hi: number,
-  readonly hi_nibble: number
+  readonly hi_nibble: number,
+  readonly nn: number
 }
 
 export type OpcodeHandler = (op: Opcode) => number;
+
+export interface VirtualMachine {
+  cycleCount: number;
+  registers: Registers;
+}
 
 export interface Registers {
   A: number,

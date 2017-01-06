@@ -1,8 +1,4 @@
-import { Opcode, OpcodeHandler } from './interfaces';
-
-export interface VirtualMachine {
-  cycleCount: number;
-}
+import { Opcode, OpcodeHandler, VirtualMachine } from './interfaces';
 
 export interface Operations {
   execOp(op: Opcode): number;
@@ -24,6 +20,14 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   Op0x0[0x0] = function NOP(): number {
     return 4;
+  };
+
+  Op0x0[0x1] = function LD_BC_d16(op: Opcode): number {
+    const { nn } = op;
+
+    vm.registers.BC = nn;
+
+    return 12;
   };
 
   return {

@@ -1,10 +1,9 @@
+import createVirtualMachine from '../../worker/vm';
 import createOperations from '../../worker/gameboy';
 import { Opcode } from '../../worker/interfaces';
 
 function makeVM() {
-  return {
-    cycleCount: 0
-  };
+  return createVirtualMachine();
 }
 
 class OpcodeImpl {
@@ -19,6 +18,10 @@ class OpcodeImpl {
   get hi_nibble(): number {
     return (this.raw & 0x0F00) >> 8;
   }
+
+  get nn(): number {
+    return (this.raw & 0x00FF);
+  }
 }
 
 export default function gameboyTests() {
@@ -31,5 +34,18 @@ export default function gameboyTests() {
 
     assert.equal(cycleCount, 4, 'executed cycle count should be 4');
     assert.equal(vm.cycleCount, 4, 'VM\'s cycle count should advance by 4');
+  });
+
+  QUnit.test('LD_BC_d16 takes 12 cycles, updates BC', function(assert) {
+    const vm = makeVM();
+
+    vm.registers.BC = 0;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeImpl(0x0123));
+
+    assert.equal(cycleCount, 12, 'executed cycle count should be 12');
+    assert.equal(vm.cycleCount, 12, 'VM\'s cycle count should advance by 12');
+    assert.equal(vm.registers.BC, 0x23, 'BC register should be 0x23');
   });
 }
