@@ -12,6 +12,15 @@
   "author": "Zachary Mulgrew",
   "license": "MIT",
   "devDependencies": {
-    "ember-cli": "^2.10.0"
+    "broccoli-funnel": "^1.1.0",
+    "broccoli-merge-trees": "^1.2.1",
+    "broccoli-rollup": "^1.0.3",
+    "broccoli-stew": "^1.4.0",
+    "broccoli-typescript-compiler": "^1.0.1",
+    "ember-cli": "^2.10.0",
+    "exists-sync": "0.0.4",
+    "rollup-plugin-buble": "^0.15.0",
+    "tslint": "next",
+    "typescript": "next"
   }
 }
