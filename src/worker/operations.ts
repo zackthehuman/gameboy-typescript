@@ -9,6 +9,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
     [index: number]: OpcodeHandler
   }
 
+  const { registers, RAM } = vm;
   const Op: OpTable = [];
   const Op0x0: OpTable = [];
 
@@ -25,9 +26,17 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op0x0[0x1] = function LD_BC_d16(op: Opcode): number {
     const { nn } = op;
 
-    vm.registers.BC = nn;
+    registers.BC = nn;
 
     return 12;
+  };
+
+  Op0x0[0x2] = function LD_BC_A(op: Opcode): number {
+    const { A, BC } = registers;
+
+    RAM[0xFF00 + BC] = A;
+
+    return 8;
   };
 
   return {

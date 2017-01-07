@@ -9,6 +9,7 @@ export type OpcodeHandler = (op: Opcode) => number;
 export interface VirtualMachine {
   cycleCount: number;
   registers: Registers;
+  RAM: Array<number>;
 }
 
 export interface Registers {
