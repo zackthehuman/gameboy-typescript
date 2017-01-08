@@ -5,7 +5,12 @@ export class Memory {
     this.RAM = new Uint8Array(0xFFFF);
   }
 
-  loadBytes(bytes: Uint8Array) {
+  clear(): void {
+    this.RAM.fill(0);
+  }
+
+  loadBytes(bytes: ArrayLike<number>): void;
+  loadBytes(bytes: Uint8Array): void {
     this.RAM.set(bytes, 0);
   }
 
