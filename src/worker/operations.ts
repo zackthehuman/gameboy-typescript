@@ -1,4 +1,5 @@
 import { Opcode, OpcodeHandler, VirtualMachine } from './interfaces';
+import { ProgramCounter } from './program-counter';
 
 export interface Operations {
   execOp(op: Opcode): number;
@@ -9,12 +10,12 @@ export default function createOperations(vm: VirtualMachine): Operations {
     [index: number]: OpcodeHandler
   }
 
-  const { registers, memory } = vm;
+  const { registers, memory, pc } = vm;
   const Op: OpTable = [];
   const Op0x0: OpTable = [];
 
   Op[0x0] = function dispatch0x0(op: Opcode) : number {
-    return Op0x0[op.hi_nibble](op);
+    return Op0x0[op.lo](op);
   };
 
   // 0x00 - 0x0F
@@ -24,7 +25,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
   };
 
   Op0x0[0x1] = function LD_BC_d16(op: Opcode): number {
-    const { nn } = op;
+    const nn: number = pc.fetch().toByte();
+    pc.increment();
 
     registers.BC = nn;
 

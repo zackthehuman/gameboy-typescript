@@ -1,9 +1,10 @@
 import { Memory } from './memory';
+import { ProgramCounter } from './program-counter';
 
 export interface Opcode {
   readonly hi: number,
-  readonly hi_nibble: number,
-  readonly nn: number
+  readonly lo: number,
+  toByte(): number
 }
 
 export type OpcodeHandler = (op: Opcode) => number;
@@ -12,6 +13,7 @@ export interface VirtualMachine {
   cycleCount: number;
   registers: Registers;
   memory: Memory;
+  pc: ProgramCounter;
 }
 
 export interface Registers {

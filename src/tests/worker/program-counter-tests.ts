@@ -45,12 +45,12 @@ export default function programCounterTests() {
   });
 
   QUnit.test('fetch() returns the byte in ROM at the current offset', function(assert) {
-    assert.equal(pc.fetch(), 0x01, 'byte at 0 is 0x01');
+    assert.equal(pc.fetch().toByte(), 0x01, 'byte at 0 is 0x01');
     pc.increment();
-    assert.equal(pc.fetch(), 0x03, 'byte at 1 is 0x03');
+    assert.equal(pc.fetch().toByte(), 0x03, 'byte at 1 is 0x03');
     pc.jump(5);
-    assert.equal(pc.fetch(), 0x37, 'byte at 5 is 0x37');
+    assert.equal(pc.fetch().toByte(), 0x37, 'byte at 5 is 0x37');
     pc.decrement();
-    assert.equal(pc.fetch(), 0x13, 'byte at 4 is 0x13');
+    assert.equal(pc.fetch().toByte(), 0x13, 'byte at 4 is 0x13');
   });
 }

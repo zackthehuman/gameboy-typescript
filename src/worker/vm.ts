@@ -1,5 +1,6 @@
 import { Registers, VirtualMachine } from './interfaces';
 import { Memory } from './memory';
+import { ProgramCounter } from './program-counter';
 
 class RegistersImpl implements Registers {
   private a: number;
@@ -73,12 +74,14 @@ class VirtualMachineImpl implements VirtualMachine {
   public cycleCount: number;
   public registers: Registers;
   public memory: Memory;
+  public pc: ProgramCounter;
 
   constructor() {
     this.cycleCount = 0;
     this.registers = new RegistersImpl();
     this.memory = new Memory();
     this.memory.clear();
+    this.pc = new ProgramCounter(this.memory);
   }
 }
 
