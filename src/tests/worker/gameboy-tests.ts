@@ -60,6 +60,6 @@ export default function gameboyTests() {
 
     assert.equal(cycleCount, 8, 'executed cycle count should be 8');
     assert.equal(vm.cycleCount, 8, 'VM\'s cycle count should advance by 8');
-    assert.equal(vm.RAM[0xFF00 + 0x07], 0x3, 'RAM at correct offset should be 0x3');
+    assert.equal(vm.memory.readByte(0xFF00 + 0x07), 0x3, 'RAM at correct offset should be 0x3');
   });
 }

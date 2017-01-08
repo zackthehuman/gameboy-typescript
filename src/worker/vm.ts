@@ -1,4 +1,5 @@
 import { Registers, VirtualMachine } from './interfaces';
+import { Memory } from './memory';
 
 class RegistersImpl implements Registers {
   private a: number;
@@ -71,16 +72,13 @@ class RegistersImpl implements Registers {
 class VirtualMachineImpl implements VirtualMachine {
   public cycleCount: number;
   public registers: Registers;
-  public RAM: Array<number>;
+  public memory: Memory;
 
   constructor() {
     this.cycleCount = 0;
     this.registers = new RegistersImpl();
-    this.RAM = new Array(0xFFFF);
-
-    for(let i = 0; i < this.RAM.length; ++i) {
-      this.RAM[i] = 0;
-    }
+    this.memory = new Memory();
+    this.memory.clear();
   }
 }
 

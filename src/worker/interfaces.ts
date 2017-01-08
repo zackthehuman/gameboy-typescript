@@ -1,3 +1,5 @@
+import { Memory } from './memory';
+
 export interface Opcode {
   readonly hi: number,
   readonly hi_nibble: number,
@@ -9,7 +11,7 @@ export type OpcodeHandler = (op: Opcode) => number;
 export interface VirtualMachine {
   cycleCount: number;
   registers: Registers;
-  RAM: Array<number>;
+  memory: Memory;
 }
 
 export interface Registers {
