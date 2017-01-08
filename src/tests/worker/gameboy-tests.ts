@@ -60,10 +60,25 @@ export default function gameboyTests() {
     vm.registers.BC = 0x07;
 
     const op = createOperations(vm);
-    const cycleCount = op.execOp(new OpcodeImpl(0x0200));
+    const cycleCount = op.execOp(new OpcodeImpl(0x02));
 
     assert.equal(cycleCount, 8, 'executed cycle count should be 8');
     assert.equal(vm.cycleCount, 8, 'VM\'s cycle count should advance by 8');
     assert.equal(vm.memory.readByte(0xFF00 + 0x07), 0x3, 'RAM at correct offset should be 0x3');
+  });
+
+  QUnit.test('INC_BC takes 8 cycles, increments BC by 1', function(assert) {
+    const vm = makeVM();
+
+    vm.registers.BC = 0x00;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeImpl(0x03));
+
+    assert.equal(cycleCount, 8, 'executed cycle count should be 8');
+    assert.equal(vm.cycleCount, 8, 'VM\'s cycle count should advance by 8');
+    assert.equal(vm.registers.BC, 0x1, 'value of BC should be 0x1');
+    op.execOp(new OpcodeImpl(0x03));
+    assert.equal(vm.registers.BC, 0x2, 'value of BC should now be 0x2');
   });
 }

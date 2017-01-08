@@ -41,6 +41,11 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   };
 
+  Op0x0[0x3] = function INC_BC(): number {
+    registers.BC += 1;
+    return 8;
+  };
+
   return {
     execOp(opcode: Opcode): number {
       const cycles = Op[opcode.hi](opcode);
