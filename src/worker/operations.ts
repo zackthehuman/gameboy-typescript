@@ -1,4 +1,5 @@
 import { Opcode, OpcodeHandler, VirtualMachine } from './interfaces';
+import { Flags } from './constants';
 import { ProgramCounter } from './program-counter';
 
 export interface Operations {
@@ -11,6 +12,23 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   const { registers, memory, pc } = vm;
+
+  function setFlag(flag: Flags): void {
+    registers.F |= (0x1 << flag);
+  }
+
+  function clearFlag(flag: Flags): void {
+    registers.F &= ~(0x1 << flag);
+  }
+
+  function isFlagSet(flag: Flags): boolean {
+    return (registers.F & (0x1 << flag)) === (0x1 << flag);
+  }
+
+  function clearAllFlags(): void {
+    registers.F = 0;
+  }
+
   const Op: OpTable = [];
   const Op0x0: OpTable = [];
 
@@ -44,6 +62,31 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op0x0[0x3] = function INC_BC(): number {
     registers.BC += 1;
     return 8;
+  };
+
+  Op0x0[0x4] = function INC_B(): number {
+    const result: number = (registers.B + 1) & 0xFF;
+    const wasCarrySet = isFlagSet(Flags.C);
+
+    registers.B = result;
+    clearAllFlags();
+
+    // Restore CARRY flag value if it was set previously.
+    if (wasCarrySet) {
+      setFlag(Flags.C);
+    }
+
+    // Set if result is zero.
+    if (0 === result) {
+      setFlag(Flags.Z);
+    }
+
+    // Set if carry from bit 3.
+    if ((result & 0x0F) === 0x00) {
+      setFlag(Flags.H);
+    }
+
+    return 4;
   };
 
   return {

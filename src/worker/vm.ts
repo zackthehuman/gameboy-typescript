@@ -24,6 +24,10 @@ class RegistersImpl implements Registers {
     return this.b;
   }
 
+  set B(value: number) {
+    this.b = value & 0xFF;
+  }
+
   get C(): number {
     return this.c;
   }
@@ -38,6 +42,10 @@ class RegistersImpl implements Registers {
 
   get F(): number {
     return this.f;
+  }
+
+  set F(value: number) {
+    this.f = value & 0xFF;
   }
 
   get H(): number {

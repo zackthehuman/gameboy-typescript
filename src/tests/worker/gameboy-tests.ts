@@ -1,9 +1,14 @@
 import createVirtualMachine from '../../worker/vm';
 import createOperations from '../../worker/gameboy';
-import { Opcode } from '../../worker/interfaces';
+import { Opcode, VirtualMachine } from '../../worker/interfaces';
+import { Flags } from '../../worker/constants';
 
 function makeVM() {
   return createVirtualMachine();
+}
+
+function isFlagSet(vm: VirtualMachine, flag: Flags): boolean {
+  return (vm.registers.F & (0x1 << flag)) === (0x1 << flag);
 }
 
 class OpcodeImpl {
@@ -80,5 +85,48 @@ export default function gameboyTests() {
     assert.equal(vm.registers.BC, 0x1, 'value of BC should be 0x1');
     op.execOp(new OpcodeImpl(0x03));
     assert.equal(vm.registers.BC, 0x2, 'value of BC should now be 0x2');
+  });
+
+  QUnit.test('INC_B takes 4 cycles, increments B by 1, sets appropriate flags', function(assert) {
+    const vm = makeVM();
+
+    vm.registers.B = 0x00;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeImpl(0x04));
+
+    assert.equal(cycleCount, 4, 'executed cycle count should be 4');
+    assert.equal(vm.cycleCount, 4, 'VM\'s cycle count should advance by 4');
+    assert.equal(vm.registers.B, 0x1, 'value of B should be 0x1');
+    op.execOp(new OpcodeImpl(0x04));
+    assert.equal(vm.registers.B, 0x2, 'value of B should now be 0x2');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.N), false, 'subtract flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.H), false, 'half-carry flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+
+    // Testing overflow 255 -> 0
+    vm.registers.F = 0;
+    vm.registers.B = 0xFF;
+    op.execOp(new OpcodeImpl(0x04));
+
+    assert.equal(isFlagSet(vm, Flags.Z), true, 'zero flag should be set');
+    assert.equal(isFlagSet(vm, Flags.N), false, 'subtract flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.H), true, 'half-carry flag should be set');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+
+    // Testing that CARRY flag is unaffected
+    vm.registers.F = 0x1 << Flags.C;
+    vm.registers.B = 0x0;
+    op.execOp(new OpcodeImpl(0x04));
+
+    assert.equal(isFlagSet(vm, Flags.C), true, 'carry flag should still be set');
+
+    // Testing that HALF_CARRY flag is set correctly.
+    vm.registers.F = 0;
+    vm.registers.B = 0x0F;
+    op.execOp(new OpcodeImpl(0x04));
+
+    assert.equal(isFlagSet(vm, Flags.H), true, 'half-carry flag should be set');
   });
 }
