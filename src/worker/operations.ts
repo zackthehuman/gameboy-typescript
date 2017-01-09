@@ -43,10 +43,12 @@ export default function createOperations(vm: VirtualMachine): Operations {
   };
 
   Op0x0[0x1] = function LD_BC_d16(): number {
-    const nn: number = pc.fetch().toByte();
+    const hi: number = pc.fetch().toByte() << 8;
+    pc.increment();
+    const lo: number = pc.fetch().toByte();
     pc.increment();
 
-    registers.BC = nn;
+    registers.BC = hi | lo;
 
     return 12;
   };
