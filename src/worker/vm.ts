@@ -53,12 +53,12 @@ class RegistersImpl implements Registers {
   }
 
   get BC(): number {
-    return (this.b << 4) | this.c;
+    return (this.b << 8) | this.c;
   }
 
   set BC(value: number) {
-    this.b = (value & 0xF0) >> 4;
-    this.c = value & 0x0F;
+    this.b = (value & 0xFF00) >> 8;
+    this.c = value & 0x00FF;
   }
 
   get DE(): number {

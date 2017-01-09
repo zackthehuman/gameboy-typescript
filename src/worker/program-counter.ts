@@ -6,7 +6,7 @@ class OpcodeImpl {
   }
 
   get hi(): number {
-    return (this.raw & 0xF0) >> 8;
+    return (this.raw & 0xF0) >> 4;
   }
 
   get lo(): number {
