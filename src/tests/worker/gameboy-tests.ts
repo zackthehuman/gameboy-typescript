@@ -129,4 +129,53 @@ export default function gameboyTests() {
 
     assert.equal(isFlagSet(vm, Flags.H), true, 'half-carry flag should be set');
   });
+
+  QUnit.test('DEC_B takes 4 cycles, decrements B by 1, sets appropriate flags', function(assert) {
+    const vm = makeVM();
+
+    vm.registers.F = 0;
+    vm.registers.B = 0x02;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeImpl(0x05));
+
+    assert.equal(cycleCount, 4, 'executed cycle count should be 4');
+    assert.equal(vm.cycleCount, 4, 'VM\'s cycle count should advance by 4');
+    assert.equal(vm.registers.B, 0x1, 'value of B should be 0x1');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.N), true, 'subtract flag should be set');
+    assert.equal(isFlagSet(vm, Flags.H), false, 'half-carry flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+
+    op.execOp(new OpcodeImpl(0x05));
+    assert.equal(vm.registers.B, 0x0, 'value of B should now be 0x0');
+    assert.equal(isFlagSet(vm, Flags.Z), true, 'zero flag should be set');
+    assert.equal(isFlagSet(vm, Flags.N), true, 'subtract flag should be set');
+    assert.equal(isFlagSet(vm, Flags.H), false, 'half-carry flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+
+    // Testing overflow 0 -> 255
+    vm.registers.F = 0;
+    vm.registers.B = 0x0;
+    op.execOp(new OpcodeImpl(0x05));
+
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.N), true, 'subtract flag should be set');
+    assert.equal(isFlagSet(vm, Flags.H), true, 'half-carry flag should be set');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+
+    // Testing that CARRY flag is unaffected
+    vm.registers.F = 0x1 << Flags.C;
+    vm.registers.B = 0x0;
+    op.execOp(new OpcodeImpl(0x05));
+
+    assert.equal(isFlagSet(vm, Flags.C), true, 'carry flag should still be set');
+
+    // Testing that HALF_CARRY flag is set correctly.
+    vm.registers.F = 0;
+    vm.registers.B = 0xF0;
+    op.execOp(new OpcodeImpl(0x05));
+
+    assert.equal(isFlagSet(vm, Flags.H), true, 'half-carry flag should be set');
+  });
 }

@@ -32,7 +32,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   const Op: OpTable = [];
   const Op0x0: OpTable = [];
 
-  Op[0x0] = function dispatch0x0(op: Opcode) : number {
+  Op[0x0] = function dispatch0x0(op: Opcode): number {
     return Op0x0[op.lo](op);
   };
 
@@ -83,6 +83,32 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
     // Set if carry from bit 3.
     if ((result & 0x0F) === 0x00) {
+      setFlag(Flags.H);
+    }
+
+    return 4;
+  };
+
+  Op0x0[0x5] = function DEC_B(): number {
+    const result: number = (registers.B - 1) & 0xFF;
+    const wasCarrySet = isFlagSet(Flags.C);
+
+    registers.B = result;
+    clearAllFlags();
+    setFlag(Flags.N);
+
+    // Restore CARRY flag value if it was set previously.
+    if (wasCarrySet) {
+      setFlag(Flags.C);
+    }
+
+    // Set if result is zero.
+    if (0 === result) {
+      setFlag(Flags.Z);
+    }
+
+    // Set if no borrow from bit 4.
+    if ((result & 0x0F) === 0x0F) {
       setFlag(Flags.H);
     }
 
