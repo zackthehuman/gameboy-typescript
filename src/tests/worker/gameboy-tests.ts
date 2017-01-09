@@ -45,7 +45,7 @@ export default function gameboyTests() {
     const vm = makeVM();
     const startOffset = vm.pc.offset;
 
-    // The PC will be advanced by 1 and this byte should be read.
+    // The PC will be advanced by 2 and these bytes should be read.
     vm.memory.loadBytes([0x13, 0x37]);
     vm.registers.BC = 0;
 
@@ -55,21 +55,21 @@ export default function gameboyTests() {
     assert.equal(cycleCount, 12, 'executed cycle count should be 12');
     assert.equal(vm.cycleCount, 12, 'VM\'s cycle count should advance by 12');
     assert.equal(vm.registers.BC, 0x1337, 'BC register should be 0x1337');
-    assert.equal(vm.pc.offset - startOffset, 2, 'The program counter was advanced by 2');
+    assert.equal(vm.pc.offset - startOffset, 2, 'the program counter was advanced by 2');
   });
 
   QUnit.test('LD_BC_A takes 8 cycles, stores value from A into (BC)', function(assert) {
     const vm = makeVM();
 
     vm.registers.A = 0x3;
-    vm.registers.BC = 0x07;
+    vm.registers.BC = 0x0089;
 
     const op = createOperations(vm);
     const cycleCount = op.execOp(new OpcodeImpl(0x02));
 
     assert.equal(cycleCount, 8, 'executed cycle count should be 8');
     assert.equal(vm.cycleCount, 8, 'VM\'s cycle count should advance by 8');
-    assert.equal(vm.memory.readByte(0xFF00 + 0x07), 0x3, 'RAM at correct offset should be 0x3');
+    assert.equal(vm.memory.readByte(0xFF00 + 0x0089), 0x3, 'RAM at correct offset should be 0x3');
   });
 
   QUnit.test('INC_BC takes 8 cycles, increments BC by 1', function(assert) {
