@@ -117,6 +117,14 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   };
 
+  Op0x0[0x6] = function LD_B_d8(): number {
+    const value: number = pc.fetch().toByte();
+    pc.increment();
+    registers.B = value;
+
+    return 8;
+  };
+
   return {
     execOp(opcode: Opcode): number {
       const cycles = Op[opcode.hi](opcode);

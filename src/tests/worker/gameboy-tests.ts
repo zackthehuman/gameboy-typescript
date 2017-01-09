@@ -178,4 +178,21 @@ export default function gameboyTests() {
 
     assert.equal(isFlagSet(vm, Flags.H), true, 'half-carry flag should be set');
   });
+
+  QUnit.test('LD_B_d8 takes 8 cycles, updates B with next byte', function(assert) {
+    const vm = makeVM();
+    const startOffset = vm.pc.offset;
+
+    // The PC will be advanced by 1 and this byte should be read.
+    vm.memory.loadBytes([0x42]);
+    vm.registers.B = 0x0;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeImpl(0x06));
+
+    assert.equal(cycleCount, 8, 'executed cycle count should be 8');
+    assert.equal(vm.cycleCount, 8, 'VM\'s cycle count should advance by 8');
+    assert.equal(vm.registers.B, 0x42, 'B should be 0x42');
+    assert.equal(vm.pc.offset - startOffset, 1, 'the program counter was advanced by 1');
+  });
 }
