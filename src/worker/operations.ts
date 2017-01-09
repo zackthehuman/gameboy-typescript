@@ -42,7 +42,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   };
 
-  Op0x0[0x1] = function LD_BC_d16(op: Opcode): number {
+  Op0x0[0x1] = function LD_BC_d16(): number {
     const nn: number = pc.fetch().toByte();
     pc.increment();
 
@@ -51,7 +51,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 12;
   };
 
-  Op0x0[0x2] = function LD_BC_A(op: Opcode): number {
+  Op0x0[0x2] = function LD_BC_A(): number {
     const { A, BC } = registers;
 
     memory.writeByte(0xFF00 + BC, A);
