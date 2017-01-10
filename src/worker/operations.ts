@@ -23,7 +23,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function isFlagSet(flag: Flags): boolean {
-    return (registers.F & (0x1 << flag)) === (0x1 << flag);
+    return getBit(registers.F, flag) === 1;
   }
 
   function clearAllFlags(): void {
