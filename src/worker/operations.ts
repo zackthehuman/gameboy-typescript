@@ -1,6 +1,7 @@
 import { Opcode, OpcodeHandler, VirtualMachine } from './interfaces';
 import { Flags } from './constants';
 import { ProgramCounter } from './program-counter';
+import { Bit, getBit, rotateByteLeft } from './bitops';
 
 export interface Operations {
   execOp(op: Opcode): number;
@@ -123,6 +124,22 @@ export default function createOperations(vm: VirtualMachine): Operations {
     registers.B = value;
 
     return 8;
+  };
+
+  Op0x0[0x7] = function RLCA(): number {
+    const { A } = registers;
+
+    clearAllFlags();
+
+    if (getBit(A, 7) === 1) {
+      setFlag(Flags.C);
+    } else {
+      clearFlag(Flags.C);
+    }
+
+    registers.A = rotateByteLeft(A, 1);
+
+    return 4;
   };
 
   return {

@@ -195,4 +195,46 @@ export default function gameboyTests() {
     assert.equal(vm.registers.B, 0x42, 'B should be 0x42');
     assert.equal(vm.pc.offset - startOffset, 1, 'the program counter was advanced by 1');
   });
+
+  QUnit.test('RCLA takes 4 cycles, rotates the A register left, always clears the Z flag, and keeps bit 7 in the C register', function(assert) {
+    const vm = makeVM();
+    vm.registers.A = 0x1;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeImpl(0x07));
+
+    assert.equal(cycleCount, 4, 'executed cycle count should be 4');
+    assert.equal(vm.cycleCount, 4, 'VM\'s cycle count should advance by 4');
+    assert.equal(vm.registers.A, 0x2, 'A should be 0x2');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+    op.execOp(new OpcodeImpl(0x07));
+    assert.equal(vm.registers.A, 0x4, 'A should be 0x4');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+    op.execOp(new OpcodeImpl(0x07));
+    assert.equal(vm.registers.A, 0x8, 'A should be 0x8');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+    op.execOp(new OpcodeImpl(0x07));
+    assert.equal(vm.registers.A, 0x10, 'A should be 0x10');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+    op.execOp(new OpcodeImpl(0x07));
+    assert.equal(vm.registers.A, 0x20, 'A should be 0x20');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+    op.execOp(new OpcodeImpl(0x07));
+    assert.equal(vm.registers.A, 0x40, 'A should be 0x40');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+    op.execOp(new OpcodeImpl(0x07));
+    assert.equal(vm.registers.A, 0x80, 'A should be 0x80');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), false, 'carry flag should be unset');
+    op.execOp(new OpcodeImpl(0x07));
+    assert.equal(vm.registers.A, 0x1, 'A should be 0x1');
+    assert.equal(isFlagSet(vm, Flags.Z), false, 'zero flag should be unset');
+    assert.equal(isFlagSet(vm, Flags.C), true, 'carry flag should be set');
+  });
 }
