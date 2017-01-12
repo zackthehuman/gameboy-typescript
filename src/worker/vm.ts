@@ -11,6 +11,8 @@ class RegistersImpl implements Registers {
   private f: number;
   private h: number;
   private l: number;
+  private sp: number;
+  private pc: number;
 
   get A(): number {
     return this.a;
@@ -76,6 +78,22 @@ class RegistersImpl implements Registers {
   get HL(): number {
     throw new Error('not implemented');
   }
+
+  get SP(): number {
+    return this.sp;
+  }
+
+  set SP(value: number) {
+    this.sp = value & 0xFFFF;
+  }
+
+  get PC(): number {
+    return this.pc;
+  }
+
+  set PC(value: number) {
+    this.pc = value & 0xFFFF;
+  }
 }
 
 class VirtualMachineImpl implements VirtualMachine {
@@ -89,7 +107,7 @@ class VirtualMachineImpl implements VirtualMachine {
     this.registers = new RegistersImpl();
     this.memory = new Memory();
     this.memory.clear();
-    this.pc = new ProgramCounter(this.memory);
+    this.pc = new ProgramCounter(this.memory, this.registers);
   }
 }
 

@@ -1,5 +1,5 @@
 import { Memory } from './memory';
-import { Opcode } from './interfaces';
+import { Opcode, Registers } from './interfaces';
 
 class OpcodeImpl {
   constructor(public raw: number) {
@@ -19,34 +19,35 @@ class OpcodeImpl {
 }
 
 export class ProgramCounter {
-  private offsetAddress: number;
-  private rom: Memory;
+  private ram: Memory;
+  private registers: Registers;
   private op: OpcodeImpl;
 
-  constructor(rom: Memory) {
-    this.rom = rom;
+  constructor(ram: Memory, registers: Registers) {
+    this.ram = ram;
+    this.registers = registers;
     this.jump(0);
     this.op = new OpcodeImpl(0);
   }
 
   get offset(): number {
-    return this.offsetAddress;
+    return this.registers.PC;
   }
 
   increment(): void {
-    this.offsetAddress++;
+    this.registers.PC++;
   }
 
   decrement(): void {
-    this.offsetAddress--;
+    this.registers.PC--;
   }
 
   jump(address: number): void {
-    this.offsetAddress = address & 0xFFFF;
+    this.registers.PC = address & 0xFFFF;
   }
 
   fetch(): Opcode {
-    this.op.raw = this.rom.readByte(this.offset);
+    this.op.raw = this.ram.readByte(this.offset);
     return this.op;
   }
 }

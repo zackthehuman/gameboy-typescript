@@ -1,5 +1,27 @@
 import { ProgramCounter } from '../../worker/program-counter';
 import { Memory } from '../../worker/memory';
+import { Registers } from '../../worker/interfaces';
+
+class FakeRegisters implements Registers {
+  constructor() {
+    this.PC = 0;
+  }
+
+  A: number;
+  B: number;
+  C: number;
+  D: number;
+  E: number;
+  F: number;
+  H: number;
+  L: number;
+  AF: number;
+  BC: number;
+  DE: number;
+  HL: number;
+  SP: number;
+  PC: number;
+}
 
 export default function programCounterTests() {
   let mem: Memory;
@@ -10,7 +32,7 @@ export default function programCounterTests() {
     beforeEach() {
       mem = new Memory();
       mem.loadBytes([0x01, 0x03, 0x03, 0x07, 0x13, 0x37]);
-      pc = new ProgramCounter(mem);
+      pc = new ProgramCounter(mem, new FakeRegisters());
     }
   });
 
