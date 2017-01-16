@@ -154,6 +154,33 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 20;
   };
 
+  Op0x0[0x9] = function ADD_HL_BC(): number {
+    const { HL, BC } = registers;
+    const result = HL + BC;
+    const wasZeroSet = isFlagSet(Flags.Z);
+
+    clearAllFlags();
+
+    // Restore ZERO flag value if it was set previously.
+    if (wasZeroSet) {
+      setFlag(Flags.Z);
+    }
+
+    // Set if carry from bit 15.
+    if (result & 0x10000) {
+      setFlag(Flags.C);
+    }
+
+    // Set if carry from bit 11.
+    if ((HL ^ BC ^ (result & 0xFFFF)) & 0x1000) {
+      setFlag(Flags.H);
+    }
+
+    registers.HL = result;
+
+    return 8;
+  };
+
   return {
     execOp(opcode: Opcode): number {
       const cycles = Op[opcode.hi](opcode);
