@@ -183,9 +183,15 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   return {
     execOp(opcode: Opcode): number {
-      const cycles = Op[opcode.hi](opcode);
-      vm.cycleCount += cycles;
-      return cycles;
+      const table = Op[opcode.hi];
+
+      if (typeof table !== 'undefined') {
+        const cycles = table(opcode);
+        vm.cycleCount += cycles;
+        return cycles;
+      }
+
+      return 0;
     }
   };
 }
