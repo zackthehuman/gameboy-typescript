@@ -21,6 +21,10 @@ class FakeRegisters implements Registers {
   HL: number;
   SP: number;
   PC: number;
+
+  toJSON(): Object {
+    return {};
+  }
 }
 
 export default function programCounterTests() {
