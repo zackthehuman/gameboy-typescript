@@ -9,9 +9,9 @@ export class Memory {
     this.RAM.fill(0);
   }
 
-  loadBytes(bytes: ArrayLike<number>): void;
-  loadBytes(bytes: Uint8Array): void {
-    this.RAM.set(bytes, 0);
+  loadBytes(bytes: ArrayLike<number>, offset?: number): void;
+  loadBytes(bytes: Uint8Array, offset?: number): void {
+    this.RAM.set(bytes, offset | 0);
   }
 
   readByte(address: number): number {
