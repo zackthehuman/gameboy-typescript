@@ -254,4 +254,19 @@ export default function gameboyTests() {
     assert.equal(vm.registers.SP, 0x1337, 'SP should be 0x1337');
     assert.equal(vm.pc.offset - startOffset, 2, 'the program counter was advanced by 2');
   });
+
+  QUnit.test('LD_a16_SP takes 8 cycles, adds the value of BC to HL', function(assert) {
+    const vm = makeVM();
+
+    vm.registers.BC = 0x1000;
+    vm.registers.HL = 0x0234;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeImpl(0x09));
+
+    assert.equal(cycleCount, 8, 'executed cycle count should be 8');
+    assert.equal(vm.cycleCount, 8, 'VM\'s cycle count should advance by 8');
+    assert.equal(vm.registers.HL, 0x1234, 'HL should be 0x1234');
+    assert.equal(isFlagSet(vm, Flags.N), false, 'subtract flag should be unset');
+  });
 }
