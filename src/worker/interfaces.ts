@@ -14,6 +14,9 @@ export interface VirtualMachine {
   registers: Registers;
   memory: Memory;
   pc: ProgramCounter;
+
+  loadROM(data: Uint8Array): void;
+  cycle(): void;
 }
 
 export interface Registers {
@@ -30,5 +33,6 @@ export interface Registers {
   DE: number,
   HL: number,
   SP: number,
-  PC: number
+  PC: number,
+  toJSON(): Object
 }
