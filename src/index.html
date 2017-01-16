@@ -4,6 +4,11 @@
     body {
       font-family: sans-serif;
     }
+
+    #registers,
+    #data-opcode {
+      font-family: monospace;
+    }
     </style>
   </head>
   <body>
@@ -14,7 +19,33 @@
       </p>
     </div>
     <div>
-    <canvas id="screen" width="640" height="320"></canvas>
+    <!-- <canvas id="screen" width="640" height="320"></canvas> -->
+    <div>
+      <button id="action-next">Next</button>
+      <table id="registers">
+        <tbody>
+          <tr>
+            <th>A</th><td id="register-A"></td><td id="register-F"></td><th>F</th>
+          </tr>
+          <tr>
+            <th>B</th><td id="register-B"></td><td id="register-C"></td><th>C</th>
+          </tr>
+          <tr>
+            <th>D</th><td id="register-D"></td><td id="register-E"></td><th>E</th>
+          </tr>
+          <tr>
+            <th>H</th><td id="register-H"></td><td id="register-L"></td><th>L</th>
+          </tr>
+          <tr>
+            <th>SP</th><td id="register-SP" colspan="3"></td>
+          </tr>
+          <tr>
+            <th>PC</th><td id="register-PC" colspan="3"></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Last Opcode: <span id="data-opcode"></span></p>
+    </div>
     <script src="index.js"></script>
     </div>
   </body>
