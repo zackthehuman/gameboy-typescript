@@ -242,7 +242,7 @@ export default function gameboyTests() {
     const vm = makeVM();
     const startOffset = vm.pc.offset;
 
-    // The PC will be advanced by 1 and this byte should be read.
+    // The PC will be advanced by 2 and these bytes should be read.
     vm.memory.loadBytes([0x13, 0x37]);
     vm.registers.SP = 0x0;
 
@@ -251,7 +251,7 @@ export default function gameboyTests() {
 
     assert.equal(cycleCount, 20, 'executed cycle count should be 20');
     assert.equal(vm.cycleCount, 20, 'VM\'s cycle count should advance by 20');
-    assert.equal(vm.registers.SP, 0x1337, 'B should be 0x1337');
+    assert.equal(vm.registers.SP, 0x1337, 'SP should be 0x1337');
     assert.equal(vm.pc.offset - startOffset, 2, 'the program counter was advanced by 2');
   });
 }
