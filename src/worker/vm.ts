@@ -1,4 +1,5 @@
 import { Registers, VirtualMachine } from './interfaces';
+import { BOOT_ROM_DATA, BOOT_ROM_OFFSET, CARTRIDGE_ROM_OFFSET } from './constants';
 import { Memory } from './memory';
 import { ProgramCounter } from './program-counter';
 
@@ -13,6 +14,23 @@ class RegistersImpl implements Registers {
   private l: number;
   private sp: number;
   private pc: number;
+
+  constructor() {
+    this.clear();
+  }
+
+  clear(): void {
+    this.a = 0;
+    this.b = 0;
+    this.c = 0;
+    this.d = 0;
+    this.e = 0;
+    this.f = 0;
+    this.h = 0;
+    this.l = 0;
+    this.sp = 0;
+    this.pc = 0;
+  }
 
   get A(): number {
     return this.a;
@@ -76,7 +94,12 @@ class RegistersImpl implements Registers {
   }
 
   get HL(): number {
-    throw new Error('not implemented');
+    return (this.h << 8) | this.l;
+  }
+
+  set HL(value: number) {
+    this.h = (value & 0xFF00) >> 8;
+    this.l = value & 0x00FF;
   }
 
   get SP(): number {
@@ -94,11 +117,21 @@ class RegistersImpl implements Registers {
   set PC(value: number) {
     this.pc = value & 0xFFFF;
   }
+
+  toJSON(): Object {
+    const {
+      A, B, C, D, E, F, H, L, SP, PC
+    } = this;
+
+    return {
+      A, B, C, D, E, F, H, L, SP, PC
+    };
+  }
 }
 
 class VirtualMachineImpl implements VirtualMachine {
   public cycleCount: number;
-  public registers: Registers;
+  public registers: RegistersImpl;
   public memory: Memory;
   public pc: ProgramCounter;
 
@@ -106,8 +139,29 @@ class VirtualMachineImpl implements VirtualMachine {
     this.cycleCount = 0;
     this.registers = new RegistersImpl();
     this.memory = new Memory();
-    this.memory.clear();
     this.pc = new ProgramCounter(this.memory, this.registers);
+    this.reset();
+  }
+
+  private reset() {
+    this.cycleCount = 0;
+    this.registers.clear();
+    this.memory.clear();
+    this.loadBootROM();
+    this.pc.jump(0);
+  }
+
+  private loadBootROM(): void {
+    this.memory.loadBytes(BOOT_ROM_DATA, BOOT_ROM_OFFSET);
+  }
+
+  loadROM(data: Uint8Array): void {
+    this.reset();
+    this.memory.loadBytes(data, CARTRIDGE_ROM_OFFSET);
+  }
+
+  cycle(): void {
+
   }
 }
 
