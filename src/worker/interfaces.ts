@@ -8,7 +8,7 @@ export interface Opcode {
   toSignedByte(): number
 }
 
-export type OpcodeHandler = (op: Opcode) => number;
+export type OpcodeHandler = () => number;
 
 export interface VirtualMachine {
   cycleCount: number;
