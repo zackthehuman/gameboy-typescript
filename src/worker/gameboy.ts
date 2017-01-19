@@ -21,11 +21,52 @@ function cycle() {
   const opcode = vm.pc.fetch();
   vm.pc.increment();
   ops.execOp(opcode);
+}
+
+var handle = 0;
+let interval: number;
+let lastTick: number;
+let paused: boolean = false;
+
+function tick() {
+  let elapsed = Date.now() - lastTick;
+  let cyclesPerTick = (elapsed * 41943 / 1000) | 0;
+
+  for (let i = 0; i < cyclesPerTick; i++) {
+    if (paused) {
+      break;
+    }
+
+    cycle();
+  }
+
+  lastTick = Date.now();
+}
+
+function pause() {
+  clearInterval(interval);
+  paused = true;
   postMessage({
-    cmd: 'cycle',
+    cmd: 'debug',
     registers: vm.registers.toJSON(),
-    opcode: opcode.toByte()
+    opcode: vm.pc.fetch().toByte()
   });
+}
+
+function resume() {
+  lastTick = Date.now();
+  interval = setInterval(tick, 10);
+  paused = false;
+}
+
+function run() {
+  cycle();
+  scheduleNextRun();
+}
+
+function scheduleNextRun() {
+  clearTimeout(handle);
+  handle = setTimeout(run, 0);
 }
 
 onmessage = function(msg: MessageEvent) {
@@ -37,9 +78,11 @@ onmessage = function(msg: MessageEvent) {
     case 'cycle':
       cycle();
       break;
-    case 'keydown':
+    case 'run':
+      resume();
       break;
-    case 'keyup':
+    case 'pause':
+      pause();
       break;
   }
 }
