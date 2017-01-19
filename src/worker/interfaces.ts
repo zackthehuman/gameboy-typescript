@@ -18,6 +18,8 @@ export interface VirtualMachine {
 
   loadROM(data: Uint8Array): void;
   cycle(): void;
+
+  panic(message: string): void;
 }
 
 export interface Registers {

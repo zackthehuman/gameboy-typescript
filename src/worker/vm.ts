@@ -134,9 +134,11 @@ class VirtualMachineImpl implements VirtualMachine {
   public registers: RegistersImpl;
   public memory: Memory;
   public pc: ProgramCounter;
+  private panicDelegate: (message: string) => void;
 
-  constructor() {
+  constructor(panicDelegate: (message: string) => void) {
     this.cycleCount = 0;
+    this.panicDelegate = panicDelegate;
     this.registers = new RegistersImpl();
     this.memory = new Memory();
     this.pc = new ProgramCounter(this.memory, this.registers);
@@ -163,8 +165,16 @@ class VirtualMachineImpl implements VirtualMachine {
   cycle(): void {
 
   }
+
+  panic(message: string): void {
+    if (typeof this.panicDelegate === 'function') {
+      return this.panicDelegate(message);
+    } else {
+      throw new Error(message);
+    }
+  }
 }
 
-export default function createVirtualMachine(): VirtualMachine {
-  return new VirtualMachineImpl();
+export default function createVirtualMachine(panicDelegate: (message: string) => void): VirtualMachine {
+  return new VirtualMachineImpl(panicDelegate);
 }
