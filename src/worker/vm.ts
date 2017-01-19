@@ -52,6 +52,10 @@ class RegistersImpl implements Registers {
     return this.c;
   }
 
+  set C(value: number) {
+    this.c = value & 0xFF;
+  }
+
   get D(): number {
     return this.d;
   }
@@ -90,7 +94,12 @@ class RegistersImpl implements Registers {
   }
 
   get DE(): number {
-    throw new Error('not implemented');
+    return (this.d << 8) | this.e;
+  }
+
+  set DE(value: number) {
+    this.d = (value & 0xFF00) >> 8;
+    this.e = value & 0x00FF;
   }
 
   get HL(): number {
