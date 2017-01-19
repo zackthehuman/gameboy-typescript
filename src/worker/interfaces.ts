@@ -22,7 +22,7 @@ export interface VirtualMachine {
   panic(message: string): void;
 }
 
-export interface Registers {
+export interface Registers8Bit {
   A: number,
   B: number,
   C: number,
@@ -30,12 +30,21 @@ export interface Registers {
   E: number,
   F: number,
   H: number,
-  L: number,
+  L: number
+}
+
+export interface Registers16Bit {
   AF: number,
   BC: number,
   DE: number,
   HL: number,
   SP: number,
-  PC: number,
+  PC: number
+}
+
+export interface Registers extends Registers8Bit, Registers16Bit {
   toJSON(): Object
 }
+
+export type ByteRegister = keyof Registers8Bit;
+export type WordRegister = keyof Registers16Bit;
