@@ -3,7 +3,12 @@ import createVirtualMachine from './vm';
 
 export default createOperations;
 
-const vm = createVirtualMachine();
+function panicHandler(message: string): void {
+  pause();
+  console.error(message);
+}
+
+const vm = createVirtualMachine(panicHandler);
 var ops = createOperations(vm);
 
 function readROMFile(file: File) {
