@@ -9,7 +9,8 @@ export interface Operations {
 
 export default function createOperations(vm: VirtualMachine): Operations {
   interface OpTable {
-    [index: number]: OpcodeHandler
+    [index: number]: OpcodeHandler,
+    length: number
   }
 
   const { registers, memory, pc } = vm;
