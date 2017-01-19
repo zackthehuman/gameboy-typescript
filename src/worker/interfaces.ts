@@ -4,7 +4,8 @@ import { ProgramCounter } from './program-counter';
 export interface Opcode {
   readonly hi: number,
   readonly lo: number,
-  toByte(): number
+  toByte(): number, // Unsigned
+  toSignedByte(): number
 }
 
 export type OpcodeHandler = (op: Opcode) => number;

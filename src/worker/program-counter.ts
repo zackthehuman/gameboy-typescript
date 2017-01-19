@@ -1,5 +1,6 @@
 import { Memory } from './memory';
 import { Opcode, Registers } from './interfaces';
+import { signedByte } from './bitops';
 
 class OpcodeImpl {
   constructor(public raw: number) {
@@ -15,6 +16,10 @@ class OpcodeImpl {
 
   toByte(): number {
     return this.raw & 0xFF;
+  }
+
+  toSignedByte(): number {
+    return signedByte(this.toByte());
   }
 }
 
