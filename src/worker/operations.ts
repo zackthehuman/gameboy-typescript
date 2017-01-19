@@ -31,12 +31,20 @@ export default function createOperations(vm: VirtualMachine): Operations {
     registers.F = 0;
   }
 
-  const Op: OpTable = [];
-  const Op0x0: OpTable = [];
+  const Op: OpTable = new Array<OpcodeHandler>(0xFF);
+  const Cb: OpTable = new Array<OpcodeHandler>(0xFF);
 
-  Op[0x0] = function dispatch0x0(op: Opcode): number {
-    return Op0x0[op.lo](op);
-  };
+  for (let i: number = 0; i < Op.length; ++i) {
+    const opcode: string = formatByte(i);
+
+    Op[i] = function unhandledOpcode() {
+      vm.panic(`Unhandled opcode: 0x${opcode}`);
+    };
+
+    Cb[i] = function unhandledCBOpcode() {
+      vm.panic(`Unhandled CB opcode: 0x${opcode}`);
+    };
+  }
 
   // 0x00 - 0x0F
 
