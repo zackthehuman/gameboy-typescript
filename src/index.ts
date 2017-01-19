@@ -1,5 +1,7 @@
 const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 const actionNextButton = document.querySelector('#action-next') as HTMLButtonElement;
+const actionRunButton = document.querySelector('#action-run') as HTMLButtonElement;
+const actionPauseButton = document.querySelector('#action-pause') as HTMLButtonElement;
 const worker = new Worker('worker/gameboy.js');
 
 const regUIForA = document.getElementById('register-A') as HTMLElement;
@@ -63,10 +65,25 @@ actionNextButton.addEventListener('click', function(this: HTMLButtonElement, evt
   worker.postMessage(cycle);
 });
 
+actionRunButton.addEventListener('click', function(this: HTMLButtonElement, evt) {
+  const run = {
+    cmd: 'run'
+  };
+  worker.postMessage(run);
+});
+
+actionPauseButton.addEventListener('click', function(this: HTMLButtonElement, evt) {
+  const pause = {
+    cmd: 'pause'
+  };
+  worker.postMessage(pause);
+});
+
 worker.onmessage = function(msg) {
   switch (msg.data.cmd) {
     case 'cycle':
-    console.log('Pong Cycle!', msg.data.registers);
+    break;
+    case 'debug':
     updateRegisterUI(msg.data.registers);
     updateOpcodeUI(msg.data.opcode);
     break;
