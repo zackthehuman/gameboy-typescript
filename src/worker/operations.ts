@@ -1,4 +1,4 @@
-import { Opcode, OpcodeHandler, VirtualMachine } from './interfaces';
+import { ByteRegister, Opcode, OpcodeHandler, WordRegister, VirtualMachine } from './interfaces';
 import { Flags } from './constants';
 import { ProgramCounter } from './program-counter';
 import { Bit, formatByte, getBit, signedByte, rotateByteLeft } from './bitops';
@@ -37,12 +37,14 @@ export default function createOperations(vm: VirtualMachine): Operations {
   for (let i: number = 0; i < Op.length; ++i) {
     const opcode: string = formatByte(i);
 
-    Op[i] = function unhandledOpcode() {
+    Op[i] = function unhandledOpcode(): number {
       vm.panic(`Unhandled opcode: 0x${opcode}`);
+      return 0;
     };
 
-    Cb[i] = function unhandledCBOpcode() {
+    Cb[i] = function unhandledCBOpcode(): number {
       vm.panic(`Unhandled CB opcode: 0x${opcode}`);
+      return 0;
     };
   }
 
@@ -90,23 +92,20 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_BC_d16(): number {
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
-
-    registers.BC = hi | lo;
-
-    return 12;
+    return LD_d16('BC');
   }
 
   function LD_DE_d16(): number {
+    return LD_d16('DE');
+  }
+
+  function LD_d16(name: WordRegister): number {
     const lo: number = pc.fetch().toByte();
     pc.increment();
     const hi: number = pc.fetch().toByte() << 8;
     pc.increment();
 
-    registers.DE = hi | lo;
+    registers[name] = hi | lo;
 
     return 12;
   }
@@ -133,35 +132,18 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function INC_B(): number {
-    const result: number = (registers.B + 1) & 0xFF;
-    const wasCarrySet = isFlagSet(Flags.C);
-
-    registers.B = result;
-    clearAllFlags();
-
-    // Restore CARRY flag value if it was set previously.
-    if (wasCarrySet) {
-      setFlag(Flags.C);
-    }
-
-    // Set if result is zero.
-    if (0 === result) {
-      setFlag(Flags.Z);
-    }
-
-    // Set if carry from bit 3.
-    if ((result & 0x0F) === 0x00) {
-      setFlag(Flags.H);
-    }
-
-    return 4;
+    return INC_BYTE('B');
   }
 
   function INC_C(): number {
-    const result: number = (registers.C + 1) & 0xFF;
+    return INC_BYTE('C');
+  }
+
+  function INC_BYTE(name: ByteRegister): number {
+    const result: number = (registers[name] + 1) & 0xFF;
     const wasCarrySet = isFlagSet(Flags.C);
 
-    registers.C = result;
+    registers[name] = result;
     clearAllFlags();
 
     // Restore CARRY flag value if it was set previously.
@@ -209,25 +191,21 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_A_d8(): number {
-    const value: number = pc.fetch().toByte();
-    pc.increment();
-    registers.A = value;
-
-    return 8;
+    return LD_register_d8('A');
   }
 
   function LD_B_d8(): number {
-    const value: number = pc.fetch().toByte();
-    pc.increment();
-    registers.B = value;
-
-    return 8;
+    return LD_register_d8('B');
   }
 
   function LD_C_d8(): number {
+    return LD_register_d8('C');
+  }
+
+  function LD_register_d8(name: ByteRegister): number {
     const value: number = pc.fetch().toByte();
     pc.increment();
-    registers.C = value;
+    registers[name] = value;
 
     return 8;
   }
@@ -306,23 +284,20 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_SP_d16(): number {
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
-
-    registers.SP = hi | lo;
-
-    return 12;
+    return LD_register_d16('SP');
   }
 
   function LD_HL_d16(): number {
+    return LD_register_d16('HL');
+  }
+
+  function LD_register_d16(name: WordRegister): number {
     const lo: number = pc.fetch().toByte();
     pc.increment();
     const hi: number = pc.fetch().toByte() << 8;
     pc.increment();
 
-    registers.HL = hi | lo;
+    registers[name] = hi | lo;
 
     return 12;
   }
