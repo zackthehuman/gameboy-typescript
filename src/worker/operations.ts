@@ -76,7 +76,6 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x4F] = LD_C_A;
 
   Op[0x77] = LD_HL_A;
-  Cb[0x7C] = BIT_7_H;
 
   Op[0xAF] = XOR_A;
 
@@ -86,6 +85,11 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   Op[0xE0] = LDH_d8_A;
   Op[0xE2] = LD_valueAtAddress_C_A;
+
+  // CB Table
+
+  Cb[0x7C] = BIT_7_H;
+
 
   function NOP(): number {
     pc.increment();
@@ -381,8 +385,6 @@ export default function createOperations(vm: VirtualMachine): Operations {
   function CB_PREFIX(): number {
     pc.increment();
     const cbOpcode: number = pc.fetch().toByte();
-    pc.increment();
-
     return 4 + Cb[cbOpcode]();
   }
 
