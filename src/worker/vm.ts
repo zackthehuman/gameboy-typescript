@@ -37,7 +37,7 @@ class RegistersImpl implements Registers {
   }
 
   set A(value: number) {
-    this.a = value;
+    this.a = value & 0xFF;
   }
 
   get B(): number {
