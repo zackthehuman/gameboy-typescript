@@ -1,7 +1,6 @@
 import { ByteRegister, Opcode, OpcodeHandler, WordRegister, VirtualMachine } from './interfaces';
 import { Flags } from './constants';
-import { ProgramCounter } from './program-counter';
-import { Bit, formatByte, getBit, signedByte, rotateByteLeft } from './bitops';
+import { Bit, formatByte, getBit, rotateByteLeft } from './bitops';
 
 export interface Operations {
   execOp(op: Opcode): number;
@@ -64,13 +63,18 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x0E] = LD_C_d8;
 
   Op[0x11] = LD_DE_d16;
+  Op[0x13] = INC_DE;
+  Op[0x17] = RL_A;
   Op[0x1A] = LD_A_DE;
 
   Op[0x20] = JR_NZ_r8;
   Op[0x21] = LD_HL_d16;
+  Op[0x22] = LDI_HL_A;
+  Op[0x23] = INC_HL;
 
   Op[0x31] = LD_SP_d16;
-  Op[0x32] = LD_HL_minus_A;
+  Op[0x32] = LDD_HL_A;
+  Op[0x33] = INC_SP;
   Op[0x3E] = LD_A_d8;
 
   Op[0x4F] = LD_C_A;
@@ -79,7 +83,9 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   Op[0xAF] = XOR_A;
 
+  Op[0xC1] = POP_BC;
   Op[0xC5] = PUSH_BC;
+  Op[0xC9] = RET;
   Op[0xCB] = CB_PREFIX;
   Op[0xCD] = CALL;
 
@@ -87,8 +93,16 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0xE2] = LD_valueAtAddress_C_A;
 
   // CB Table
+  Cb[0x10] = CB_RL_B;
+  Cb[0x11] = CB_RL_C;
+  Cb[0x12] = CB_RL_D;
+  Cb[0x13] = CB_RL_E;
+  Cb[0x14] = CB_RL_H;
+  Cb[0x15] = CB_RL_L;
 
-  Cb[0x7C] = BIT_7_H;
+  Cb[0x17] = CB_RL_A;
+
+  Cb[0x7C] = CB_BIT_7_H;
 
 
   function NOP(): number {
@@ -137,7 +151,26 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   function INC_BC(): number {
     pc.increment();
-    registers.BC += 1;
+    return INC_WORD('BC');
+  }
+
+  function INC_DE(): number {
+    pc.increment();
+    return INC_WORD('DE');
+  }
+
+  function INC_HL(): number {
+    pc.increment();
+    return INC_WORD('HL');
+  }
+
+  function INC_SP(): number {
+    pc.increment();
+    return INC_WORD('SP');
+  }
+
+  function INC_WORD(name: WordRegister): number {
+    registers[name] += 1;
     return 8;
   }
 
@@ -228,10 +261,16 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   function LD_C_A(): number {
     pc.increment();
-    const { A, C } = registers;
+    const { A } = registers;
 
     registers.C = A;
 
+    return 4;
+  }
+
+  function RL_A(): number {
+    pc.increment();
+    RL('A');
     return 4;
   }
 
@@ -359,7 +398,15 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function LD_HL_minus_A(): number {
+  function LDI_HL_A(): number {
+    pc.increment();
+    const { A, HL } = registers;
+    memory.writeByte(HL, A);
+    registers.HL++;
+    return 8;
+  }
+
+  function LDD_HL_A(): number {
     pc.increment();
     const { A, HL } = registers;
     memory.writeByte(HL, A);
@@ -367,7 +414,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  // LD_HL_minus_A.disassembly = 'LD (HL-),A';
+  // LDD_HL_A.disassembly = 'LD (HL-),A';
 
   function JR_NZ_r8(): number {
     pc.increment();
@@ -405,6 +452,12 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 24;
   }
 
+  function RET(): number {
+    pc.increment();
+    pc.jump(stackPop());
+    return 8;
+  }
+
   function PUSH_BC(): number {
     pc.increment();
     return PUSH(registers.BC);
@@ -420,7 +473,78 @@ export default function createOperations(vm: VirtualMachine): Operations {
     memory.writeWord(registers.SP, address);
   }
 
-  function BIT_7_H(): number {
+  function stackPop(): number {
+    const address: number = memory.readWord(registers.SP);
+    registers.SP += 2;
+    return address;
+  }
+
+  function POP_BC(): number {
+    pc.increment();
+    registers.BC = memory.readWord(registers.SP);
+    registers.SP += 2;
+
+    return 12;
+  }
+
+  function CB_RL_A(): number {
+    pc.increment();
+    return RL('A');
+  }
+
+  function CB_RL_B(): number {
+    pc.increment();
+    return RL('B');
+  }
+
+  function CB_RL_C(): number {
+    pc.increment();
+    return RL('C');
+  }
+
+  function CB_RL_D(): number {
+    pc.increment();
+    return RL('D');
+  }
+
+  function CB_RL_E(): number {
+    pc.increment();
+    return RL('E');
+  }
+
+  function CB_RL_H(): number {
+    pc.increment();
+    return RL('H');
+  }
+
+  function CB_RL_L(): number {
+    pc.increment();
+    return RL('L');
+  }
+
+  function RL(name: ByteRegister): number {
+    const carry: Bit = isFlagSet(Flags.C) ? 1 : 0;
+    let result = registers[name];
+
+    clearAllFlags();
+
+    if ((result & 0x80) !== 0) {
+      setFlag(Flags.C);
+    }
+
+    result <<= 1;
+    result |= carry;
+
+    registers[name] = result;
+
+    if (registers[name] === 0) {
+      setFlag(Flags.Z);
+    }
+
+    return 8;
+  }
+
+  function CB_BIT_7_H(): number {
     pc.increment();
     if (getBit(registers.H, 7) == 0) {
         setFlag(Flags.Z);
