@@ -88,14 +88,17 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0xE2] = LD_valueAtAddress_C_A;
 
   function NOP(): number {
+    pc.increment();
     return 4;
   }
 
   function LD_BC_d16(): number {
+    pc.increment();
     return LD_d16('BC');
   }
 
   function LD_DE_d16(): number {
+    pc.increment();
     return LD_d16('DE');
   }
 
@@ -111,6 +114,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_BC_A(): number {
+    pc.increment();
     const { A, BC } = registers;
 
     memory.writeByte(0xFF00 + BC, A);
@@ -119,6 +123,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_A_DE(): number {
+    pc.increment();
     const { DE } = registers;
 
     registers.A = memory.readByte(DE);
@@ -127,15 +132,18 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function INC_BC(): number {
+    pc.increment();
     registers.BC += 1;
     return 8;
   }
 
   function INC_B(): number {
+    pc.increment();
     return INC_BYTE('B');
   }
 
   function INC_C(): number {
+    pc.increment();
     return INC_BYTE('C');
   }
 
@@ -165,6 +173,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function DEC_B(): number {
+    pc.increment();
     const result: number = (registers.B - 1) & 0xFF;
     const wasCarrySet = isFlagSet(Flags.C);
 
@@ -191,14 +200,17 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_A_d8(): number {
+    pc.increment();
     return LD_register_d8('A');
   }
 
   function LD_B_d8(): number {
+    pc.increment();
     return LD_register_d8('B');
   }
 
   function LD_C_d8(): number {
+    pc.increment();
     return LD_register_d8('C');
   }
 
@@ -211,6 +223,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_C_A(): number {
+    pc.increment();
     const { A, C } = registers;
 
     registers.C = A;
@@ -219,6 +232,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function RLCA(): number {
+    pc.increment();
     const { A } = registers;
 
     clearAllFlags();
@@ -235,6 +249,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_a16_SP(): number {
+    pc.increment();
     const lo: number = pc.fetch().toByte();
     pc.increment();
     const hi: number = pc.fetch().toByte() << 8;
@@ -247,6 +262,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LDH_d8_A(): number {
+    pc.increment();
     const { A } = registers;
     const offset: number = pc.fetch().toByte();
     pc.increment();
@@ -257,6 +273,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function ADD_HL_BC(): number {
+    pc.increment();
     const { HL, BC } = registers;
     const result = HL + BC;
     const wasZeroSet = isFlagSet(Flags.Z);
@@ -284,10 +301,12 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_SP_d16(): number {
+    pc.increment();
     return LD_register_d16('SP');
   }
 
   function LD_HL_d16(): number {
+    pc.increment();
     return LD_register_d16('HL');
   }
 
@@ -303,6 +322,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function XOR_A(): number {
+    pc.increment();
     const { A } = registers;
     const result: number = registers.A ^= A;
 
@@ -318,6 +338,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_valueAtAddress_C_A(): number {
+    pc.increment();
     const { A, C } = registers;
 
     memory.writeByte(0xFF00 + C, A);
@@ -326,6 +347,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_HL_A(): number {
+    pc.increment();
     const { A, HL } = registers;
 
     memory.writeByte(HL, A);
@@ -334,6 +356,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_HL_minus_A(): number {
+    pc.increment();
     const { A, HL } = registers;
     memory.writeByte(HL, A);
     registers.HL--;
@@ -343,6 +366,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   // LD_HL_minus_A.disassembly = 'LD (HL-),A';
 
   function JR_NZ_r8(): number {
+    pc.increment();
     const offset: number = pc.fetch().toSignedByte();
     pc.increment();
 
@@ -355,6 +379,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function CB_PREFIX(): number {
+    pc.increment();
     const cbOpcode: number = pc.fetch().toByte();
     pc.increment();
 
@@ -362,6 +387,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function CALL(): number {
+    pc.increment();
     const lo: number = pc.fetch().toByte();
     pc.increment();
     const hi: number = pc.fetch().toByte() << 8;
@@ -378,6 +404,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function PUSH_BC(): number {
+    pc.increment();
     return PUSH(registers.BC);
   }
 
@@ -392,6 +419,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function BIT_7_H(): number {
+    pc.increment();
     if (getBit(registers.H, 7) == 0) {
         setFlag(Flags.Z);
     } else {

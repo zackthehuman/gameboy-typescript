@@ -18,9 +18,7 @@ function readROMFile(file: File) {
 }
 
 function cycle() {
-  const opcode = vm.pc.fetch();
-  vm.pc.increment();
-  ops.execOp(opcode);
+  ops.execOp(vm.pc.fetch());
 }
 
 var handle = 0;
