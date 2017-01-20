@@ -32,7 +32,7 @@ export default function programCounterTests() {
   let sample: Uint8Array;
   let pc: ProgramCounter;
 
-  module('worker/program-counter', {
+  QUnit.module('worker/program-counter', {
     beforeEach() {
       mem = new Memory();
       mem.loadBytes([0x01, 0x03, 0x03, 0x07, 0x13, 0x37]);

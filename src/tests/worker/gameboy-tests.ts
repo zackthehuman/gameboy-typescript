@@ -1,36 +1,26 @@
 import createVirtualMachine from '../../worker/vm';
 import createOperations from '../../worker/gameboy';
 import { Opcode, VirtualMachine } from '../../worker/interfaces';
+import { OpcodeImpl } from '../../worker/opcode';
 import { Flags } from '../../worker/constants';
 
-function makeVM() {
-  return createVirtualMachine();
+function makeVM(): VirtualMachine {
+  function panic(message: string): void {
+    QUnit.assert.ok(false, message);
+  }
+
+  const vm: VirtualMachine = createVirtualMachine(panic);
+  vm.pc.jump(0);
+
+  return vm;
 }
 
 function isFlagSet(vm: VirtualMachine, flag: Flags): boolean {
   return (vm.registers.F & (0x1 << flag)) === (0x1 << flag);
 }
 
-class OpcodeImpl {
-  constructor(private raw: number) {
-    this.raw = raw;
-  }
-
-  get hi(): number {
-    return (this.raw & 0xF0) >> 8;
-  }
-
-  get lo(): number {
-    return this.raw & 0xF;
-  }
-
-  toByte(): number {
-    return this.raw & 0xFF;
-  }
-}
-
 export default function gameboyTests() {
-  module('worker/gameboy - opcodes');
+  QUnit.module('worker/gameboy - opcodes');
 
   QUnit.test('NOP takes 4 cycles', function(assert) {
     const vm = makeVM();
@@ -46,7 +36,7 @@ export default function gameboyTests() {
     const startOffset = vm.pc.offset;
 
     // The PC will be advanced by 2 and these bytes should be read.
-    vm.memory.loadBytes([0x13, 0x37]);
+    vm.memory.loadBytes([0x01, 0x37, 0x13]);
     vm.registers.BC = 0;
 
     const op = createOperations(vm);
@@ -55,7 +45,7 @@ export default function gameboyTests() {
     assert.equal(cycleCount, 12, 'executed cycle count should be 12');
     assert.equal(vm.cycleCount, 12, 'VM\'s cycle count should advance by 12');
     assert.equal(vm.registers.BC, 0x1337, 'BC register should be 0x1337');
-    assert.equal(vm.pc.offset - startOffset, 2, 'the program counter was advanced by 2');
+    assert.equal(vm.pc.offset - startOffset, 3, 'the program counter was advanced by 3');
   });
 
   QUnit.test('LD_BC_A takes 8 cycles, stores value from A into (BC)', function(assert) {
@@ -184,7 +174,7 @@ export default function gameboyTests() {
     const startOffset = vm.pc.offset;
 
     // The PC will be advanced by 1 and this byte should be read.
-    vm.memory.loadBytes([0x42]);
+    vm.memory.loadBytes([0x06, 0x42]);
     vm.registers.B = 0x0;
 
     const op = createOperations(vm);
@@ -193,7 +183,7 @@ export default function gameboyTests() {
     assert.equal(cycleCount, 8, 'executed cycle count should be 8');
     assert.equal(vm.cycleCount, 8, 'VM\'s cycle count should advance by 8');
     assert.equal(vm.registers.B, 0x42, 'B should be 0x42');
-    assert.equal(vm.pc.offset - startOffset, 1, 'the program counter was advanced by 1');
+    assert.equal(vm.pc.offset - startOffset, 2, 'the program counter was advanced by 2');
   });
 
   QUnit.test('RCLA takes 4 cycles, rotates the A register left, always clears the Z flag, and keeps bit 7 in the C register', function(assert) {
@@ -243,7 +233,7 @@ export default function gameboyTests() {
     const startOffset = vm.pc.offset;
 
     // The PC will be advanced by 2 and these bytes should be read.
-    vm.memory.loadBytes([0x13, 0x37]);
+    vm.memory.loadBytes([0x08, 0x37, 0x13]);
     vm.registers.SP = 0x0;
 
     const op = createOperations(vm);
@@ -252,7 +242,7 @@ export default function gameboyTests() {
     assert.equal(cycleCount, 20, 'executed cycle count should be 20');
     assert.equal(vm.cycleCount, 20, 'VM\'s cycle count should advance by 20');
     assert.equal(vm.registers.SP, 0x1337, 'SP should be 0x1337');
-    assert.equal(vm.pc.offset - startOffset, 2, 'the program counter was advanced by 2');
+    assert.equal(vm.pc.offset - startOffset, 3, 'the program counter was advanced by 3');
   });
 
   QUnit.test('LD_a16_SP takes 8 cycles, adds the value of BC to HL', function(assert) {

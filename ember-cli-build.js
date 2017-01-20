@@ -65,7 +65,9 @@ module.exports = function () {
     include: ['index.html']
   })];
 
-  var tests = typescript(src, {
+  var qunitTypes = 'node_modules/@types/qunit';
+
+  var tests = typescript(new MergeTrees([src, qunitTypes]), {
     annotation: 'compile all-tests.ts',
     tsconfig: {
       compilerOptions: {
@@ -78,7 +80,8 @@ module.exports = function () {
         inlineSources: true
       },
       files: [
-        'tests/all-tests.ts'
+        'tests/all-tests.ts',
+        'index.d.ts'
       ]
     }
   });

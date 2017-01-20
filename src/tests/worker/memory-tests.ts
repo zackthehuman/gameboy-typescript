@@ -1,7 +1,7 @@
 import { Memory } from '../../worker/memory';
 
 export default function memoryTests() {
-  module('worker/memory');
+  QUnit.module('worker/memory');
 
   QUnit.test('readByte reads a single byte', function(assert) {
     const mem = new Memory();
