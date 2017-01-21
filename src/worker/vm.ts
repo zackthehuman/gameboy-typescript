@@ -60,8 +60,16 @@ class RegistersImpl implements Registers {
     return this.d;
   }
 
+  set D(value: number) {
+    this.d = value & 0xFF;
+  }
+
   get E(): number {
     return this.e;
+  }
+
+  set E(value: number) {
+    this.e = value & 0xFF;
   }
 
   get F(): number {
@@ -76,8 +84,16 @@ class RegistersImpl implements Registers {
     return this.h;
   }
 
+  set H(value: number) {
+    this.h = value & 0xFF;
+  }
+
   get L(): number {
     return this.l;
+  }
+
+  set L(value: number) {
+    this.l = value & 0xFF;
   }
 
   get AF(): number {
