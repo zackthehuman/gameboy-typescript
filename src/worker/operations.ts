@@ -60,26 +60,33 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x08] = LD_a16_SP;
   Op[0x09] = ADD_HL_BC;
   Op[0x0C] = INC_C;
+  Op[0x0D] = DEC_C;
   Op[0x0E] = LD_C_d8;
 
   Op[0x11] = LD_DE_d16;
   Op[0x13] = INC_DE;
+  Op[0x15] = DEC_D;
   Op[0x17] = RL_A;
   Op[0x1A] = LD_A_DE;
+  Op[0x1D] = DEC_E;
 
   Op[0x20] = JR_NZ_r8;
   Op[0x21] = LD_HL_d16;
   Op[0x22] = LDI_HL_A;
   Op[0x23] = INC_HL;
+  Op[0x25] = DEC_H;
+  Op[0x2D] = DEC_L;
 
   Op[0x31] = LD_SP_d16;
   Op[0x32] = LDD_HL_A;
   Op[0x33] = INC_SP;
+  Op[0x3D] = DEC_A;
   Op[0x3E] = LD_A_d8;
 
   Op[0x4F] = LD_C_A;
 
   Op[0x77] = LD_HL_A;
+  Op[0x7B] = LD_A_E;
 
   Op[0xAF] = XOR_A;
 
@@ -89,8 +96,15 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0xCB] = CB_PREFIX;
   Op[0xCD] = CALL;
 
+  Op[0xD5] = PUSH_DE;
+
   Op[0xE0] = LDH_d8_A;
   Op[0xE2] = LD_valueAtAddress_C_A;
+  Op[0xEA] = LD_nn_A;
+  Op[0xE5] = PUSH_HL;
+
+  Op[0xFE] = CP_d8;
+  Op[0xF5] = PUSH_AF;
 
   // CB Table
   Cb[0x10] = CB_RL_B;
@@ -140,12 +154,23 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
+  function LD_A_E(): number {
+    pc.increment();
+    return LD_8bit_8bit('A', 'E');
+  }
+
+  function LD_8bit_8bit(dest: ByteRegister, source: ByteRegister): number {
+    registers[dest] = registers[source];
+    return 4;
+  }
+
   function LD_A_DE(): number {
     pc.increment();
-    const { DE } = registers;
+    return LD_8bit_16bit('A', 'DE');
+  }
 
-    registers.A = memory.readByte(DE);
-
+  function LD_8bit_16bit(dest: ByteRegister, source: WordRegister): number {
+    registers[dest] = memory.readByte(registers[source]);
     return 8;
   }
 
@@ -209,12 +234,47 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
+  function DEC_A(): number {
+    pc.increment();
+    return DEC('A');
+  }
+
   function DEC_B(): number {
     pc.increment();
-    const result: number = (registers.B - 1) & 0xFF;
+    return DEC('B');
+  }
+
+  function DEC_C(): number {
+    pc.increment();
+    return DEC('C');
+  }
+
+  function DEC_D(): number {
+    pc.increment();
+    return DEC('D');
+  }
+
+  function DEC_E(): number {
+    pc.increment();
+    return DEC('E');
+  }
+
+  function DEC_H(): number {
+    pc.increment();
+    return DEC('H');
+  }
+
+  function DEC_L(): number {
+    pc.increment();
+    return DEC('L');
+  }
+
+  function DEC(name: ByteRegister): number {
+    pc.increment();
+    const result: number = (registers[name] - 1) & 0xFF;
     const wasCarrySet = isFlagSet(Flags.C);
 
-    registers.B = result;
+    registers[name] = result;
     clearAllFlags();
     setFlag(Flags.N);
 
@@ -289,6 +349,21 @@ export default function createOperations(vm: VirtualMachine): Operations {
     registers.A = rotateByteLeft(A, 1);
 
     return 4;
+  }
+
+  function LD_nn_A(): number {
+    pc.increment();
+    const lo: number = pc.fetch().toByte();
+    pc.increment();
+    const hi: number = pc.fetch().toByte() << 8;
+    pc.increment();
+
+    const address = (hi | lo) & 0xFFFF;
+    const { A } = registers;
+
+    memory.writeByte(address, A);
+
+    return 16;
   }
 
   function LD_a16_SP(): number {
@@ -458,9 +533,24 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
+  function PUSH_AF(): number {
+    pc.increment();
+    return PUSH(registers.AF);
+  }
+
   function PUSH_BC(): number {
     pc.increment();
     return PUSH(registers.BC);
+  }
+
+  function PUSH_DE(): number {
+    pc.increment();
+    return PUSH(registers.DE);
+  }
+
+  function PUSH_HL(): number {
+    pc.increment();
+    return PUSH(registers.HL);
   }
 
   function PUSH(address: number): number {
@@ -485,6 +575,35 @@ export default function createOperations(vm: VirtualMachine): Operations {
     registers.SP += 2;
 
     return 12;
+  }
+
+  function CP_d8(): number {
+    pc.increment();
+    const value: number = pc.fetch().toByte();
+    pc.increment();
+
+    CP_IMPL(value);
+
+    return 8;
+  }
+
+  function CP_IMPL(value: number): void {
+    const { A } = registers;
+    const result: number = A - value;
+
+    setFlag(Flags.N);
+
+    if (result === 0) {
+      setFlag(Flags.Z);
+    }
+
+    if ((result & 0x80) !== 0) {
+      setFlag(Flags.C);
+    }
+
+    if ((result & 0x0F) === 0x0F) {
+      setFlag(Flags.H);
+    }
   }
 
   function CB_RL_A(): number {
