@@ -59,6 +59,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x07] = RLCA;
   Op[0x08] = LD_a16_SP;
   Op[0x09] = ADD_HL_BC;
+  Op[0x0A] = LD_A_BC;
   Op[0x0C] = INC_C;
   Op[0x0D] = DEC_C;
   Op[0x0E] = LD_C_d8;
@@ -87,6 +88,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   Op[0x77] = LD_HL_A;
   Op[0x7B] = LD_A_E;
+  Op[0x7E] = LD_A_HL;
 
   Op[0xAF] = XOR_A;
 
@@ -103,6 +105,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0xEA] = LD_nn_A;
   Op[0xE5] = PUSH_HL;
 
+  Op[0xFE] = LD_A_nn;
   Op[0xFE] = CP_d8;
   Op[0xF5] = PUSH_AF;
 
@@ -164,14 +167,41 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
+  function LD_A_BC(): number {
+    pc.increment();
+    return LD_8bit_16bit('A', 'BC');
+  }
+
   function LD_A_DE(): number {
     pc.increment();
     return LD_8bit_16bit('A', 'DE');
   }
 
+  function LD_A_HL(): number {
+    pc.increment();
+    return LD_8bit_16bit('A', 'HL');
+  }
+
+  function LD_A_nn(): number {
+    pc.increment();
+    return LD_8bit_address('A');
+  }
+
   function LD_8bit_16bit(dest: ByteRegister, source: WordRegister): number {
     registers[dest] = memory.readByte(registers[source]);
     return 8;
+  }
+
+  function LD_8bit_address(name: ByteRegister): number {
+    const lo: number = pc.fetch().toByte();
+    pc.increment();
+    const hi: number = pc.fetch().toByte() << 8;
+    pc.increment();
+    const address = (hi | lo) & 0xFFFF;
+
+    registers[name] = memory.readByte(address);
+
+    return 16;
   }
 
   function INC_BC(): number {
