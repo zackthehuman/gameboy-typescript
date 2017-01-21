@@ -164,10 +164,14 @@ class VirtualMachineImpl implements VirtualMachine {
   public registers: RegistersImpl;
   public memory: Memory;
   public pc: ProgramCounter;
+  public ime: boolean;
+  public imeCycles: number;
   private panicDelegate: (message: string) => void;
 
   constructor(panicDelegate: (message: string) => void) {
     this.cycleCount = 0;
+    this.ime = false;
+    this.imeCycles = 0;
     this.panicDelegate = panicDelegate;
     this.registers = new RegistersImpl();
     this.memory = new Memory();
@@ -177,6 +181,8 @@ class VirtualMachineImpl implements VirtualMachine {
 
   private reset() {
     this.cycleCount = 0;
+    this.ime = false;
+    this.imeCycles = 0;
     this.registers.clear();
     this.memory.clear();
     this.loadBootROM();

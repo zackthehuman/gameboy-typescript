@@ -90,6 +90,14 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x7B] = LD_A_E;
   Op[0x7E] = LD_A_HL;
 
+  Op[0x87] = ADD_A_A;
+  Op[0x80] = ADD_A_B;
+  Op[0x81] = ADD_A_C;
+  Op[0x82] = ADD_A_D;
+  Op[0x83] = ADD_A_E;
+  Op[0x84] = ADD_A_H;
+  Op[0x85] = ADD_A_L;
+
   Op[0xAF] = XOR_A;
 
   Op[0xC1] = POP_BC;
@@ -105,9 +113,11 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0xEA] = LD_nn_A;
   Op[0xE5] = PUSH_HL;
 
-  Op[0xFE] = LD_A_nn;
-  Op[0xFE] = CP_d8;
+  Op[0xF3] = DI;
   Op[0xF5] = PUSH_AF;
+  Op[0xFA] = LD_A_nn;
+  Op[0xFB] = EI;
+  Op[0xFE] = CP_d8;
 
   // CB Table
   Cb[0x10] = CB_RL_B;
@@ -320,6 +330,66 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
     // Set if no borrow from bit 4.
     if ((result & 0x0F) === 0x0F) {
+      setFlag(Flags.H);
+    }
+
+    return 4;
+  }
+
+  function ADD_A_A(): number {
+    pc.increment();
+    return ADD_register_register('A', 'A');
+  }
+
+  function ADD_A_B(): number {
+    pc.increment();
+    return ADD_register_register('A', 'B');
+  }
+
+  function ADD_A_C(): number {
+    pc.increment();
+    return ADD_register_register('A', 'C');
+  }
+
+  function ADD_A_D(): number {
+    pc.increment();
+    return ADD_register_register('A', 'D');
+  }
+
+  function ADD_A_E(): number {
+    pc.increment();
+    return ADD_register_register('A', 'E');
+  }
+
+  function ADD_A_H(): number {
+    pc.increment();
+    return ADD_register_register('A', 'H');
+  }
+
+  function ADD_A_L(): number {
+    pc.increment();
+    return ADD_register_register('A', 'L');
+  }
+
+  function ADD_register_register(dest: ByteRegister, source: ByteRegister): number {
+    const augend: number = registers[dest];
+    const addend: number = registers[source];
+    const sum: number = (augend + addend) & 0xFF;
+    const carryBits: number = augend ^ addend ^ sum;
+
+    registers[dest] = sum;
+
+    clearAllFlags();
+
+    if (sum === 0) {
+      setFlag(Flags.Z);
+    }
+
+    if ((carryBits & 0x100) !== 0) {
+      setFlag(Flags.C);
+    }
+
+    if ((carryBits & 0x10) !== 0) {
       setFlag(Flags.H);
     }
 
@@ -705,6 +775,31 @@ export default function createOperations(vm: VirtualMachine): Operations {
     clearFlag(Flags.N);
 
     return 8;
+  }
+
+  function DI(): number {
+    pc.increment();
+    // This instruction disables interrupts but not
+    // immediately. Interrupts are disabled after
+    // instruction after DI is executed.
+    vm.ime = false;
+    vm.imeCycles = 0;
+
+    console.warn('The DI opcode is not actually implemented yet.');
+
+    return 4;
+  }
+
+  function EI(): number {
+    pc.increment();
+    // Enable interrupts. This intruction enables interrupts
+    // but not immediately. Interrupts are enabled after
+    // instruction after EI is executed.
+    vm.imeCycles = 4 + 1;
+
+    console.warn('The EI opcode is not actually implemented yet.');
+
+    return 4;
   }
 
   return {

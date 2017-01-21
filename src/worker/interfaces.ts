@@ -16,6 +16,9 @@ export interface VirtualMachine {
   memory: Memory;
   pc: ProgramCounter;
 
+  ime: boolean;
+  imeCycles: number;
+
   loadROM(data: Uint8Array): void;
   cycle(): void;
 
