@@ -81,7 +81,12 @@ class RegistersImpl implements Registers {
   }
 
   get AF(): number {
-    throw new Error('not implemented');
+    return (this.a << 8) | this.f;
+  }
+
+  set AF(value: number) {
+    this.a = (value & 0xFF00) >> 8;
+    this.f = value & 0x00FF;
   }
 
   get BC(): number {
