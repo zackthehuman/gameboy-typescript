@@ -129,6 +129,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0xEA] = LD_nn_A;
   Op[0xE5] = PUSH_HL;
 
+  Op[0xF0] = LDH_A_d8;
   Op[0xF3] = DI;
   Op[0xF5] = PUSH_AF;
   Op[0xFA] = LD_A_nn;
@@ -552,6 +553,16 @@ export default function createOperations(vm: VirtualMachine): Operations {
     pc.increment();
 
     memory.writeByte(0xFF00 + offset, A);
+
+    return 12;
+  }
+
+  function LDH_A_d8(): number {
+    pc.increment();
+    const offset: number = pc.fetch().toByte();
+    pc.increment();
+
+    registers.A = memory.readByte(0xFF00 + offset);
 
     return 12;
   }
