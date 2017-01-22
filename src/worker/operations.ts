@@ -310,7 +310,6 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function DEC(name: ByteRegister): number {
-    pc.increment();
     const result: number = (registers[name] - 1) & 0xFF;
     const wasCarrySet = isFlagSet(Flags.C);
 
