@@ -66,11 +66,13 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   Op[0x11] = LD_DE_d16;
   Op[0x13] = INC_DE;
+  Op[0x14] = INC_D;
   Op[0x15] = DEC_D;
   Op[0x16] = LD_D_d8;
   Op[0x17] = RL_A;
   Op[0x18] = JR_r8;
   Op[0x1A] = LD_A_DE;
+  Op[0x1C] = INC_E;
   Op[0x1D] = DEC_E;
   Op[0x1E] = LD_E_d8;
 
@@ -78,9 +80,11 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x21] = LD_HL_d16;
   Op[0x22] = LDI_HL_A;
   Op[0x23] = INC_HL;
+  Op[0x24] = INC_H;
   Op[0x25] = DEC_H;
   Op[0x26] = LD_H_d8;
   Op[0x28] = JR_Z_r8;
+  Op[0x2C] = INC_L;
   Op[0x2D] = DEC_L;
   Op[0x2E] = LD_L_d8;
 
@@ -89,6 +93,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x32] = LDD_HL_A;
   Op[0x33] = INC_SP;
   Op[0x38] = JR_C_r8;
+  Op[0x3C] = INC_A;
   Op[0x3D] = DEC_A;
   Op[0x3E] = LD_A_d8;
 
@@ -256,6 +261,11 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
+  function INC_A(): number {
+    pc.increment();
+    return INC_BYTE('A');
+  }
+
   function INC_B(): number {
     pc.increment();
     return INC_BYTE('B');
@@ -264,6 +274,26 @@ export default function createOperations(vm: VirtualMachine): Operations {
   function INC_C(): number {
     pc.increment();
     return INC_BYTE('C');
+  }
+
+  function INC_D(): number {
+    pc.increment();
+    return INC_BYTE('D');
+  }
+
+  function INC_E(): number {
+    pc.increment();
+    return INC_BYTE('E');
+  }
+
+  function INC_H(): number {
+    pc.increment();
+    return INC_BYTE('H');
+  }
+
+  function INC_L(): number {
+    pc.increment();
+    return INC_BYTE('L');
   }
 
   function INC_BYTE(name: ByteRegister): number {
