@@ -67,28 +67,44 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x11] = LD_DE_d16;
   Op[0x13] = INC_DE;
   Op[0x15] = DEC_D;
+  Op[0x16] = LD_D_d8;
   Op[0x17] = RL_A;
+  Op[0x18] = JR_r8;
   Op[0x1A] = LD_A_DE;
   Op[0x1D] = DEC_E;
+  Op[0x1E] = LD_E_d8;
 
   Op[0x20] = JR_NZ_r8;
   Op[0x21] = LD_HL_d16;
   Op[0x22] = LDI_HL_A;
   Op[0x23] = INC_HL;
   Op[0x25] = DEC_H;
+  Op[0x26] = LD_H_d8;
+  Op[0x28] = JR_Z_r8;
   Op[0x2D] = DEC_L;
+  Op[0x2E] = LD_L_d8;
 
+  Op[0x30] = JR_NC_r8;
   Op[0x31] = LD_SP_d16;
   Op[0x32] = LDD_HL_A;
   Op[0x33] = INC_SP;
+  Op[0x38] = JR_C_r8;
   Op[0x3D] = DEC_A;
   Op[0x3E] = LD_A_d8;
 
+  Op[0x47] = LD_B_A;
   Op[0x4F] = LD_C_A;
+
+  Op[0x57] = LD_D_A;
+  Op[0x5F] = LD_E_A;
+
+  Op[0x67] = LD_H_A;
+  Op[0x6F] = LD_L_A;
 
   Op[0x77] = LD_HL_A;
   Op[0x7B] = LD_A_E;
   Op[0x7E] = LD_A_HL;
+  Op[0x7F] = LD_A_A;
 
   Op[0x87] = ADD_A_A;
   Op[0x80] = ADD_A_B;
@@ -410,6 +426,26 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return LD_register_d8('C');
   }
 
+  function LD_D_d8(): number {
+    pc.increment();
+    return LD_register_d8('D');
+  }
+
+  function LD_E_d8(): number {
+    pc.increment();
+    return LD_register_d8('E');
+  }
+
+  function LD_L_d8(): number {
+    pc.increment();
+    return LD_register_d8('L');
+  }
+
+  function LD_H_d8(): number {
+    pc.increment();
+    return LD_register_d8('H');
+  }
+
   function LD_register_d8(name: ByteRegister): number {
     const value: number = pc.fetch().toByte();
     pc.increment();
@@ -418,12 +454,43 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
+  function LD_A_A(): number {
+    pc.increment();
+    return LD_register_register('A', 'A');
+  }
+
+  function LD_B_A(): number {
+    pc.increment();
+    return LD_register_register('B', 'A');
+  }
+
   function LD_C_A(): number {
     pc.increment();
-    const { A } = registers;
+    return LD_register_register('C', 'A');
+  }
 
-    registers.C = A;
+  function LD_D_A(): number {
+    pc.increment();
+    return LD_register_register('D', 'A');
+  }
 
+  function LD_E_A(): number {
+    pc.increment();
+    return LD_register_register('E', 'A');
+  }
+
+  function LD_H_A(): number {
+    pc.increment();
+    return LD_register_register('H', 'A');
+  }
+
+  function LD_L_A(): number {
+    pc.increment();
+    return LD_register_register('L', 'A');
+  }
+
+  function LD_register_register(dest: ByteRegister, source: ByteRegister): number {
+    registers[dest] = registers[source];
     return 4;
   }
 
@@ -590,12 +657,61 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   // LDD_HL_A.disassembly = 'LD (HL-),A';
 
+  function JR_r8(): number {
+    pc.increment();
+    const offset: number = pc.fetch().toSignedByte();
+    pc.increment();
+
+    pc.jump(pc.offset + offset);
+
+    return 12;
+  }
+
   function JR_NZ_r8(): number {
     pc.increment();
     const offset: number = pc.fetch().toSignedByte();
     pc.increment();
 
     if (!isFlagSet(Flags.Z)) {
+      pc.jump(pc.offset + offset);
+      return 12;
+    } else {
+      return 8;
+    }
+  }
+
+  function JR_Z_r8(): number {
+    pc.increment();
+    const offset: number = pc.fetch().toSignedByte();
+    pc.increment();
+
+    if (isFlagSet(Flags.Z)) {
+      pc.jump(pc.offset + offset);
+      return 12;
+    } else {
+      return 8;
+    }
+  }
+
+  function JR_NC_r8(): number {
+    pc.increment();
+    const offset: number = pc.fetch().toSignedByte();
+    pc.increment();
+
+    if (!isFlagSet(Flags.C)) {
+      pc.jump(pc.offset + offset);
+      return 12;
+    } else {
+      return 8;
+    }
+  }
+
+  function JR_C_r8(): number {
+    pc.increment();
+    const offset: number = pc.fetch().toSignedByte();
+    pc.increment();
+
+    if (isFlagSet(Flags.C)) {
       pc.jump(pc.offset + offset);
       return 12;
     } else {
