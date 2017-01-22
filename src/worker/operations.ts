@@ -123,6 +123,14 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x84] = ADD_A_H;
   Op[0x85] = ADD_A_L;
 
+  Op[0x90] = SUB_B;
+  Op[0x91] = SUB_C;
+  Op[0x92] = SUB_D;
+  Op[0x93] = SUB_E;
+  Op[0x94] = SUB_H;
+  Op[0x95] = SUB_L;
+  Op[0x97] = SUB_A;
+
   Op[0xAF] = XOR_A;
 
   Op[0xC1] = POP_BC;
@@ -459,6 +467,69 @@ export default function createOperations(vm: VirtualMachine): Operations {
       setFlag(Flags.C);
     }
 
+    if ((carryBits & 0x10) !== 0) {
+      setFlag(Flags.H);
+    }
+
+    return 4;
+  }
+
+  function SUB_A(): number {
+    pc.increment();
+    return SUB_register('A');
+  }
+
+  function SUB_B(): number {
+    pc.increment();
+    return SUB_register('B');
+  }
+
+  function SUB_C(): number {
+    pc.increment();
+    return SUB_register('C');
+  }
+
+  function SUB_D(): number {
+    pc.increment();
+    return SUB_register('D');
+  }
+
+  function SUB_E(): number {
+    pc.increment();
+    return SUB_register('E');
+  }
+
+  function SUB_H(): number {
+    pc.increment();
+    return SUB_register('H');
+  }
+
+  function SUB_L(): number {
+    pc.increment();
+    return SUB_register('L');
+  }
+
+  function SUB_register(name: ByteRegister): number {
+    const minuend: number = registers.A;
+    const subtrahend: number = registers[name];
+    const result: number = (minuend - subtrahend);
+    const carryBits: number = minuend ^ subtrahend ^ result;
+
+    registers.A = result;
+
+    setFlag(Flags.N);
+
+    // Set if result is zero.
+    if ((result & 0xFF) === 0) {
+      setFlag(Flags.Z);
+    }
+
+    // Set if no borrow from bit 4.
+    if ((carryBits & 0x100) !== 0) {
+      setFlag(Flags.C);
+    }
+
+    // Set if no borrow.
     if ((carryBits & 0x10) !== 0) {
       setFlag(Flags.H);
     }
