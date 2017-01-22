@@ -75,6 +75,7 @@ onmessage = function(msg: MessageEvent) {
       break;
     case 'cycle':
       cycle();
+      pause();
       break;
     case 'run':
       resume();
