@@ -107,7 +107,11 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x6F] = LD_L_A;
 
   Op[0x77] = LD_HL_A;
+  Op[0x78] = LD_A_B;
+  Op[0x79] = LD_A_C;
+  Op[0x7A] = LD_A_D;
   Op[0x7B] = LD_A_E;
+  Op[0x7C] = LD_A_H;
   Op[0x7E] = LD_A_HL;
   Op[0x7F] = LD_A_A;
 
@@ -189,9 +193,29 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
+  function LD_A_B(): number {
+    pc.increment();
+    return LD_8bit_8bit('A', 'B');
+  }
+
+  function LD_A_C(): number {
+    pc.increment();
+    return LD_8bit_8bit('A', 'C');
+  }
+
+  function LD_A_D(): number {
+    pc.increment();
+    return LD_8bit_8bit('A', 'D');
+  }
+
   function LD_A_E(): number {
     pc.increment();
     return LD_8bit_8bit('A', 'E');
+  }
+
+  function LD_A_H(): number {
+    pc.increment();
+    return LD_8bit_8bit('A', 'H');
   }
 
   function LD_8bit_8bit(dest: ByteRegister, source: ByteRegister): number {
