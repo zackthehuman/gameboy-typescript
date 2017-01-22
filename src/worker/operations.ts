@@ -452,14 +452,14 @@ export default function createOperations(vm: VirtualMachine): Operations {
   function ADD_register_register(dest: ByteRegister, source: ByteRegister): number {
     const augend: number = registers[dest];
     const addend: number = registers[source];
-    const sum: number = (augend + addend) & 0xFF;
+    const sum: number = augend + addend;
     const carryBits: number = augend ^ addend ^ sum;
 
     registers[dest] = sum;
 
     clearAllFlags();
 
-    if (sum === 0) {
+    if ((sum & 0xFF) === 0) {
       setFlag(Flags.Z);
     }
 
