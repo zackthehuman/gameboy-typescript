@@ -138,6 +138,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0xBE] = CP_HL;
 
   Op[0xC1] = POP_BC;
+  Op[0xC3] = JP_d16;
   Op[0xC5] = PUSH_BC;
   Op[0xC6] = ADD_A_d8;
   Op[0xC9] = RET;
@@ -880,6 +881,20 @@ export default function createOperations(vm: VirtualMachine): Operations {
     } else {
       return 8;
     }
+  }
+
+  function JP_d16(): number {
+    pc.increment();
+    const lo: number = pc.fetch().toByte();
+    pc.increment();
+    const hi: number = pc.fetch().toByte() << 8;
+    pc.increment();
+
+    const address: number = hi | lo;
+
+    pc.jump(address);
+
+    return 12;
   }
 
   function CB_PREFIX(): number {
