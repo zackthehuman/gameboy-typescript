@@ -1,3 +1,6 @@
+import { formatByte, getBit } from './worker/bitops';
+import { Flags } from './worker/constants';
+
 const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 const actionNextButton = document.querySelector('#action-next') as HTMLButtonElement;
 const actionRunButton = document.querySelector('#action-run') as HTMLButtonElement;
@@ -15,12 +18,12 @@ const regUIForL = document.getElementById('register-L') as HTMLElement;
 const regUIForSP = document.getElementById('register-SP') as HTMLElement;
 const regUIForPC = document.getElementById('register-PC') as HTMLElement;
 
-const opcodeUI = document.getElementById('data-opcode') as HTMLElement;
+const bitUIForFlagZ = document.getElementById('flag-bit-7') as HTMLElement;
+const bitUIForFlagN = document.getElementById('flag-bit-6') as HTMLElement;
+const bitUIForFlagH = document.getElementById('flag-bit-5') as HTMLElement;
+const bitUIForFlagC = document.getElementById('flag-bit-4') as HTMLElement;
 
-function formatByte(value: number): string {
-  const hex: string = value.toString(16);
-  return ('00' + hex).substring(hex.length);
-}
+const opcodeUI = document.getElementById('data-opcode') as HTMLElement;
 
 function formatWord(value: number): string {
   const hex: string = value.toString(16);
@@ -42,6 +45,13 @@ function updateRegisterUI(values): void {
 
 function updateOpcodeUI(opcode): void {
   opcodeUI.innerText = formatByte(opcode);
+}
+
+function updateFlagUI(flagsRegister: number): void {
+  bitUIForFlagZ.innerText = String(getBit(flagsRegister, Flags.Z));
+  bitUIForFlagN.innerText = String(getBit(flagsRegister, Flags.N));
+  bitUIForFlagH.innerText = String(getBit(flagsRegister, Flags.H));
+  bitUIForFlagC.innerText = String(getBit(flagsRegister, Flags.C));
 }
 
 input.addEventListener('change', function(this: HTMLInputElement, evt) {
@@ -85,6 +95,7 @@ worker.onmessage = function(msg) {
     break;
     case 'debug':
     updateRegisterUI(msg.data.registers);
+    updateFlagUI(msg.data.registers.F);
     updateOpcodeUI(msg.data.opcode);
     break;
   }

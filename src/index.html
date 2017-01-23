@@ -9,6 +9,7 @@
       border: 1px solid #000;
     }
 
+    #flags,
     #registers,
     #data-opcode {
       font-family: monospace;
@@ -29,6 +30,9 @@
       <button id="action-pause">Pause</button>
       <button id="action-next">Next</button>
       <table id="registers">
+        <thead>
+          <caption>Registers</caption>
+        </thead>
         <tbody>
           <tr>
             <th>A</th><td id="register-A"></td><td id="register-F"></td><th>F</th>
@@ -47,6 +51,33 @@
           </tr>
           <tr>
             <th>PC</th><td id="register-PC" colspan="3"></td>
+          </tr>
+        </tbody>
+      </table>
+      <table id="flags">
+        <thead>
+          <caption>Flags</caption>
+          <tr>
+            <th title="Zero Flag">Z</th>
+            <th title="Subtract Flag">N</th>
+            <th title="Half-carry Flag">H</th>
+            <th title="Carry flag">C</th>
+            <th title="Unused bit 3">0</th>
+            <th title="Unused bit 2">0</th>
+            <th title="Unused bit 1">0</th>
+            <th title="Unused bit 0">0</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="flag-bit-7">0</td>
+            <td id="flag-bit-6">0</td>
+            <td id="flag-bit-5">0</td>
+            <td id="flag-bit-4">0</td>
+            <td id="flag-bit-3">0</td>
+            <td id="flag-bit-2">0</td>
+            <td id="flag-bit-1">0</td>
+            <td id="flag-bit-0">0</td>
           </tr>
         </tbody>
       </table>
