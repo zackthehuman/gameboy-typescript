@@ -16,6 +16,8 @@ export interface VirtualMachine {
   memory: Memory;
   pc: ProgramCounter;
 
+  didFinishBootROM: boolean;
+
   ime: boolean;
   imeCycles: number;
 

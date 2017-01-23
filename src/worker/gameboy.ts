@@ -1,5 +1,6 @@
 import createOperations from './operations';
 import createVirtualMachine from './vm';
+import { Opcode } from './interfaces';
 
 export default createOperations;
 
@@ -9,7 +10,7 @@ function panicHandler(message: string): void {
 }
 
 const vm = createVirtualMachine(panicHandler);
-var ops = createOperations(vm);
+const ops = createOperations(vm);
 
 function readROMFile(file: File) {
   const reader = new FileReaderSync();
@@ -18,7 +19,28 @@ function readROMFile(file: File) {
 }
 
 function cycle() {
-  ops.execOp(vm.pc.fetch());
+  // Pause at the end of the boot ROM.
+  if (vm.pc.offset === 0x00FE) {
+    if (!paused) {
+      pause();
+      return;
+    }
+  }
+
+  const op: Opcode = vm.pc.fetch();
+
+  if (!vm.didFinishBootROM) {
+    const pcBefore: number = vm.pc.offset;
+    ops.execOp(op);
+    const pcAfter: number = vm.pc.offset;
+
+    if (pcBefore === 0xFE && pcAfter === 0x100) {
+      vm.didFinishBootROM = true;
+      console.info('Finished boot ROM.');
+    }
+  } else {
+    ops.execOp(op);
+  }
 }
 
 var handle = 0;
@@ -52,6 +74,9 @@ function pause() {
 }
 
 function resume() {
+  // HACK (temporary)
+  // This makes it look like we've drawn the screen from a register perspective.
+  vm.memory.writeByte(0xFF44, 0x90);
   lastTick = Date.now();
   interval = setInterval(tick, 10);
   paused = false;

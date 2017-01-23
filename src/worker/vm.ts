@@ -167,6 +167,7 @@ class VirtualMachineImpl implements VirtualMachine {
   public ime: boolean;
   public imeCycles: number;
   private panicDelegate: (message: string) => void;
+  private _didFinishBootROM: boolean;
 
   constructor(panicDelegate: (message: string) => void) {
     this.cycleCount = 0;
@@ -176,6 +177,7 @@ class VirtualMachineImpl implements VirtualMachine {
     this.registers = new RegistersImpl();
     this.memory = new Memory();
     this.pc = new ProgramCounter(this.memory, this.registers);
+    this.didFinishBootROM = false;
     this.reset();
   }
 
@@ -185,17 +187,22 @@ class VirtualMachineImpl implements VirtualMachine {
     this.imeCycles = 0;
     this.registers.clear();
     this.memory.clear();
-    this.loadBootROM();
+    this.didFinishBootROM = false;
     this.pc.jump(0);
   }
 
-  private loadBootROM(): void {
-    this.memory.loadBytes(BOOT_ROM_DATA, BOOT_ROM_OFFSET);
+  public get didFinishBootROM(): boolean {
+    return this._didFinishBootROM;
+  }
+
+  public set didFinishBootROM(value: boolean) {
+    this._didFinishBootROM = value;
+    this.memory.isBootROMMode = !value;
   }
 
   loadROM(data: Uint8Array): void {
     this.reset();
-    this.memory.loadBytes(data, CARTRIDGE_ROM_OFFSET);
+    this.memory.loadBytes(data, 0);
   }
 
   cycle(): void {
