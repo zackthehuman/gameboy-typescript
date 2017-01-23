@@ -1,7 +1,7 @@
 import { BOOT_ROM_DATA } from './constants';
 
 function isBootROMAddress(address: number): boolean {
-  return address >= 0 && address <= 0xFF;
+  return address >= 0 && address < 0x100;
 }
 
 export class Memory {
