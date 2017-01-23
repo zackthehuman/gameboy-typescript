@@ -83,6 +83,7 @@ function resume() {
 }
 
 function run() {
+  paused = false;
   cycle();
   scheduleNextRun();
 }
