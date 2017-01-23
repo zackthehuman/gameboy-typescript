@@ -19,14 +19,6 @@ function readROMFile(file: File) {
 }
 
 function cycle() {
-  // Pause at the end of the boot ROM.
-  if (vm.pc.offset === 0x00FE) {
-    if (!paused) {
-      pause();
-      return;
-    }
-  }
-
   const op: Opcode = vm.pc.fetch();
 
   if (!vm.didFinishBootROM) {
