@@ -133,6 +133,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   Op[0xAF] = XOR_A;
 
+  Op[0xBE] = CP_HL;
+
   Op[0xC1] = POP_BC;
   Op[0xC5] = PUSH_BC;
   Op[0xC9] = RET;
@@ -932,6 +934,16 @@ export default function createOperations(vm: VirtualMachine): Operations {
     pc.increment();
     const value: number = pc.fetch().toByte();
     pc.increment();
+
+    CP_IMPL(value);
+
+    return 8;
+  }
+
+  function CP_HL(): number {
+    pc.increment();
+    const { HL } = registers;
+    const value: number = memory.readByte(HL);
 
     CP_IMPL(value);
 
