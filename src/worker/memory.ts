@@ -1,8 +1,21 @@
+import { BOOT_ROM_DATA } from './constants';
+
+function isBootROMAddress(address: number): boolean {
+  return address >= 0 && address <= 0xFF;
+}
+
 export class Memory {
   private RAM: Uint8Array;
+  private BOOT_ROM: Uint8Array;
+  public isBootROMMode: boolean;
 
   constructor() {
     this.RAM = new Uint8Array(0xFFFF);
+    this.BOOT_ROM = new Uint8Array(0x100); // 256
+    this.isBootROMMode = false;
+
+    // Load the boot ROM because it never changes.
+    this.BOOT_ROM.set(BOOT_ROM_DATA);
   }
 
   clear(): void {
@@ -19,11 +32,19 @@ export class Memory {
   }
 
   readByte(address: number): number {
-    return this.RAM[address] & 0xFF;
+    if (this.isBootROMMode && isBootROMAddress(address)) {
+      return this.BOOT_ROM[address] & 0xFF;
+    } else {
+      return this.RAM[address] & 0xFF;
+    }
   }
 
   readWord(address: number): number {
-    return (this.RAM[address] << 8 | this.RAM[address + 1]) & 0xFFFF;
+    if (this.isBootROMMode && isBootROMAddress(address)) {
+      return (this.BOOT_ROM[address] << 8 | this.BOOT_ROM[address + 1]) & 0xFFFF;
+    } else {
+      return (this.RAM[address] << 8 | this.RAM[address + 1]) & 0xFFFF;
+    }
   }
 
   writeByte(address: number, value: number): void {
