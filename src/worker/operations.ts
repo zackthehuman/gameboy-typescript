@@ -112,16 +112,18 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Op[0x7A] = LD_A_D;
   Op[0x7B] = LD_A_E;
   Op[0x7C] = LD_A_H;
+  Op[0x7D] = LD_A_L;
   Op[0x7E] = LD_A_HL;
   Op[0x7F] = LD_A_A;
 
-  Op[0x87] = ADD_A_A;
   Op[0x80] = ADD_A_B;
   Op[0x81] = ADD_A_C;
   Op[0x82] = ADD_A_D;
   Op[0x83] = ADD_A_E;
   Op[0x84] = ADD_A_H;
   Op[0x85] = ADD_A_L;
+  Op[0x86] = ADD_A_HL;
+  Op[0x87] = ADD_A_A;
 
   Op[0x90] = SUB_B;
   Op[0x91] = SUB_C;
@@ -137,6 +139,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   Op[0xC1] = POP_BC;
   Op[0xC5] = PUSH_BC;
+  Op[0xC6] = ADD_A_d8;
   Op[0xC9] = RET;
   Op[0xCB] = CB_PREFIX;
   Op[0xCD] = CALL;
@@ -226,6 +229,11 @@ export default function createOperations(vm: VirtualMachine): Operations {
   function LD_A_H(): number {
     pc.increment();
     return LD_8bit_8bit('A', 'H');
+  }
+
+  function LD_A_L(): number {
+    pc.increment();
+    return LD_8bit_8bit('A', 'L');
   }
 
   function LD_8bit_8bit(dest: ByteRegister, source: ByteRegister): number {
@@ -451,9 +459,28 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return ADD_register_register('A', 'L');
   }
 
+  function ADD_A_HL(): number {
+    pc.increment();
+    ADD_register_value('A', memory.readByte(registers.HL));
+    return 8;
+  }
+
+  function ADD_A_d8(): number {
+    pc.increment();
+    const value: number = pc.fetch().toSignedByte();
+    pc.increment();
+    ADD_register_value('A', value);
+    return 8;
+  }
+
   function ADD_register_register(dest: ByteRegister, source: ByteRegister): number {
+    ADD_register_value(dest, registers[source]);
+    return 4;
+  }
+
+  function ADD_register_value(dest: ByteRegister, value: number): void {
     const augend: number = registers[dest];
-    const addend: number = registers[source];
+    const addend: number = value;
     const sum: number = augend + addend;
     const carryBits: number = augend ^ addend ^ sum;
 
@@ -472,8 +499,6 @@ export default function createOperations(vm: VirtualMachine): Operations {
     if ((carryBits & 0x10) !== 0) {
       setFlag(Flags.H);
     }
-
-    return 4;
   }
 
   function SUB_A(): number {
