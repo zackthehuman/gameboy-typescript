@@ -954,9 +954,10 @@ export default function createOperations(vm: VirtualMachine): Operations {
     const { A } = registers;
     const result: number = A - value;
 
+    clearAllFlags();
     setFlag(Flags.N);
 
-    if (result === 0) {
+    if ((result & 0xFF) === 0) {
       setFlag(Flags.Z);
     }
 
