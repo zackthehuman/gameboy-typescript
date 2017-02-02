@@ -1,5 +1,6 @@
 import { ProgramCounter } from '../../worker/program-counter';
 import { Memory } from '../../worker/memory';
+import { MMU } from '../../worker/mmu';
 import { Registers } from '../../worker/interfaces';
 
 class FakeRegisters implements Registers {
@@ -28,13 +29,13 @@ class FakeRegisters implements Registers {
 }
 
 export default function programCounterTests() {
-  let mem: Memory;
+  let mem: MMU;
   let sample: Uint8Array;
   let pc: ProgramCounter;
 
   QUnit.module('worker/program-counter', {
     beforeEach() {
-      mem = new Memory();
+      mem = new MMU(new Memory());
       mem.loadBytes([0x01, 0x03, 0x03, 0x07, 0x13, 0x37]);
       pc = new ProgramCounter(mem, new FakeRegisters());
     }

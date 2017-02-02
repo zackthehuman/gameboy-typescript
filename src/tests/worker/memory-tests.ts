@@ -1,10 +1,11 @@
 import { Memory } from '../../worker/memory';
+import { MMU } from '../../worker/mmu';
 
 export default function memoryTests() {
-  QUnit.module('worker/memory');
+  QUnit.module('worker/mmu');
 
   QUnit.test('readByte reads a single byte', function(assert) {
-    const mem = new Memory();
+    const mem = new MMU(new Memory());
     mem.loadBytes([0x40, 0x2]);
 
     assert.equal(mem.readByte(0), 0x40, 'byte at 0 should be 0x40');
@@ -12,7 +13,7 @@ export default function memoryTests() {
   });
 
   QUnit.test('readWord reads a two consecutive bytes', function(assert) {
-    const mem = new Memory();
+    const mem = new MMU(new Memory());
     mem.loadBytes([0x40, 0x02, 0xB3, 0x3F]);
 
     assert.equal(mem.readWord(0), 0x4002, 'word at 0 should be 0x4002');
@@ -20,7 +21,7 @@ export default function memoryTests() {
   });
 
   QUnit.test('internal RAM is echoed from 0xC000 to 0xE000', function(assert) {
-    const mem = new Memory();
+    const mem = new MMU(new Memory());
 
     mem.loadBytes([0x8, 0x6, 0x7, 0x5, 0x3, 0x0, 0x9], 0xC000);
     assert.equal(mem.readByte(0xE000), 0x8, 'byte at 0xE000 should be 0x8');

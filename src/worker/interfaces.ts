@@ -1,4 +1,4 @@
-import { Memory } from './memory';
+import { MemoryAccess } from './memory';
 import { ProgramCounter } from './program-counter';
 
 export interface Opcode {
@@ -13,7 +13,7 @@ export type OpcodeHandler = () => number;
 export interface VirtualMachine {
   cycleCount: number;
   registers: Registers;
-  memory: Memory;
+  memory: MemoryAccess;
   pc: ProgramCounter;
 
   didFinishBootROM: boolean;

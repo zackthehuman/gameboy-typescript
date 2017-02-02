@@ -1,14 +1,14 @@
-import { Memory } from './memory';
+import { MemoryAccess } from './memory';
 import { Opcode, Registers } from './interfaces';
 import { OpcodeImpl } from './opcode';
 
 export class ProgramCounter {
-  private ram: Memory;
+  private memory: MemoryAccess;
   private registers: Registers;
   private op: OpcodeImpl;
 
-  constructor(ram: Memory, registers: Registers) {
-    this.ram = ram;
+  constructor(memory: MemoryAccess, registers: Registers) {
+    this.memory = memory;
     this.registers = registers;
     this.jump(0);
     this.op = new OpcodeImpl(0);
@@ -31,7 +31,7 @@ export class ProgramCounter {
   }
 
   fetch(): Opcode {
-    this.op.raw = this.ram.readByte(this.offset);
+    this.op.raw = this.memory.readByte(this.offset);
     return this.op;
   }
 }

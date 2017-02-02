@@ -37,7 +37,8 @@ export default function gameboyTests() {
     const startOffset = vm.pc.offset;
 
     // The PC will be advanced by 2 and these bytes should be read.
-    vm.memory.loadBytes([0x01, 0x37, 0x13]);
+    vm.loadROM(new Uint8Array([0x01, 0x37, 0x13]));
+    vm.didFinishBootROM = true;
     vm.registers.BC = 0;
 
     const op = createOperations(vm);
@@ -175,7 +176,8 @@ export default function gameboyTests() {
     const startOffset = vm.pc.offset;
 
     // The PC will be advanced by 1 and this byte should be read.
-    vm.memory.loadBytes([0x06, 0x42]);
+    vm.loadROM(new Uint8Array([0x06, 0x42]));
+    vm.didFinishBootROM = true;
     vm.registers.B = 0x0;
 
     const op = createOperations(vm);
@@ -234,7 +236,8 @@ export default function gameboyTests() {
     const startOffset = vm.pc.offset;
 
     // The PC will be advanced by 2 and these bytes should be read.
-    vm.memory.loadBytes([0x08, 0x37, 0x13]);
+    vm.loadROM(new Uint8Array([0x08, 0x37, 0x13]));
+    vm.didFinishBootROM = true;
     vm.registers.SP = 0x0;
 
     const op = createOperations(vm);

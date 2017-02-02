@@ -1,6 +1,6 @@
 import { Registers, VirtualMachine } from './interfaces';
-import { BOOT_ROM_DATA, BOOT_ROM_OFFSET, CARTRIDGE_ROM_OFFSET } from './constants';
 import { Memory } from './memory';
+import { MMU } from './mmu';
 import { ProgramCounter } from './program-counter';
 
 class RegistersImpl implements Registers {
@@ -162,7 +162,7 @@ class RegistersImpl implements Registers {
 class VirtualMachineImpl implements VirtualMachine {
   public cycleCount: number;
   public registers: RegistersImpl;
-  public memory: Memory;
+  public memory: MMU;
   public pc: ProgramCounter;
   public ime: boolean;
   public imeCycles: number;
@@ -175,7 +175,7 @@ class VirtualMachineImpl implements VirtualMachine {
     this.imeCycles = 0;
     this.panicDelegate = panicDelegate;
     this.registers = new RegistersImpl();
-    this.memory = new Memory();
+    this.memory = new MMU(new Memory());
     this.pc = new ProgramCounter(this.memory, this.registers);
     this.didFinishBootROM = false;
     this.reset();
