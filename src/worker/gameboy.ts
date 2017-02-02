@@ -12,6 +12,36 @@ function panicHandler(message: string): void {
 const vm = createVirtualMachine(panicHandler);
 const ops = createOperations(vm);
 
+interface Audio {
+  update(cycleCount: number): void;
+}
+
+interface Video {
+  update(cycleCount: number): void;
+}
+
+interface Input {
+  update(cycleCount: number): void;
+}
+
+const audio: Audio = {
+  update(cycleCount: number): void {
+    // console.log(cycleCount);
+  }
+};
+
+const input: Input = {
+  update(cycleCount: number): void {
+    // console.log(cycleCount);
+  }
+};
+
+const video: Video = {
+  update(cycleCount: number): void {
+    // console.log(cycleCount);
+  }
+};
+
 function readROMFile(file: File) {
   const reader = new FileReaderSync();
   const buffer = reader.readAsArrayBuffer(file);
@@ -20,10 +50,11 @@ function readROMFile(file: File) {
 
 function cycle() {
   const op: Opcode = vm.pc.fetch();
+  let cycleCount: number = 0;
 
   if (!vm.didFinishBootROM) {
     const pcBefore: number = vm.pc.offset;
-    ops.execOp(op);
+    cycleCount = ops.execOp(op);
     const pcAfter: number = vm.pc.offset;
 
     if (pcBefore === 0xFE && pcAfter === 0x100) {
@@ -31,8 +62,12 @@ function cycle() {
       console.info('Finished boot ROM.');
     }
   } else {
-    ops.execOp(op);
+    cycleCount = ops.execOp(op);
   }
+
+  audio.update(cycleCount);
+  input.update(cycleCount);
+  video.update(cycleCount);
 }
 
 var handle = 0;
@@ -51,17 +86,51 @@ function tick() {
 
     cycle();
   }
+  // const tileSetA: Array<number> = new Array<number>((0x8FFF - 0x8800) + 1);
+  // const tileSetB: Array<number> = new Array<number>((0x87FF - 0x8000) + 1);
 
+  // for (let i = 0x8800; i < 0x8FFF; ++i) {
+  //   tileSetA[i - 0x8800] = vm.memory.readByte(i);
+  // }
+
+  // for (let i = 0x8000; i < 0x87FF; ++i) {
+  //   tileSetB[i - 0x8000] = vm.memory.readByte(i);
+  // }
+
+  // postMessage({
+  //   cmd: 'debug',
+  //   registers: vm.registers.toJSON(),
+  //   opcode: vm.pc.fetch().toByte(),
+  //   tileSetA,
+  //   tileSetB
+  // });
   lastTick = Date.now();
 }
 
 function pause() {
   clearInterval(interval);
   paused = true;
+
+  const tileSetA: Array<number> = new Array<number>((0x97FF - 0x8800) + 1);
+  const tileSetB: Array<number> = new Array<number>((0x8FFF - 0x8000) + 1);
+
+  for (let i = 0x8800; i < 0x97FF; ++i) {
+    tileSetA[i - 0x8800] = vm.memory.readByte(i);
+  }
+
+  for (let i = 0x8000; i < 0x8FFF; ++i) {
+    tileSetB[i - 0x8000] = vm.memory.readByte(i);
+  }
+
+  const palette: number = vm.memory.readByte(0xFF47);
+
   postMessage({
     cmd: 'debug',
     registers: vm.registers.toJSON(),
-    opcode: vm.pc.fetch().toByte()
+    opcode: vm.pc.fetch().toByte(),
+    tileSetA,
+    tileSetB,
+    palette
   });
 }
 

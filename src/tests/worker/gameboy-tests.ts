@@ -10,6 +10,7 @@ function makeVM(): VirtualMachine {
   }
 
   const vm: VirtualMachine = createVirtualMachine(panic);
+  vm.didFinishBootROM = true;
   vm.pc.jump(0);
 
   return vm;

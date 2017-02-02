@@ -5,6 +5,10 @@ const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 const actionNextButton = document.querySelector('#action-next') as HTMLButtonElement;
 const actionRunButton = document.querySelector('#action-run') as HTMLButtonElement;
 const actionPauseButton = document.querySelector('#action-pause') as HTMLButtonElement;
+const tileSet1Canvas = document.querySelector('#tile-set-1') as HTMLCanvasElement;
+const tileSet1Context = tileSet1Canvas.getContext('2d');
+const tileSet2Canvas = document.querySelector('#tile-set-2') as HTMLCanvasElement;
+const tileSet2Context = tileSet2Canvas.getContext('2d');
 const worker = new Worker('worker/gameboy.js');
 
 const regUIForA = document.getElementById('register-A') as HTMLElement;
@@ -54,6 +58,78 @@ function updateFlagUI(flagsRegister: number): void {
   bitUIForFlagC.innerText = String(getBit(flagsRegister, Flags.C));
 }
 
+const COLORS: Array<string> = [
+  '#E0F7D0', // WHITE
+  '#87BF6F', // LIGHT_GREY
+  '#306950', // DARK_GREY
+  '#081921'  // BLACK
+];
+
+function mergeBits(loBits: number, hiBits: number, bit: number): number {
+  return getBit(loBits, bit) | (getBit(hiBits, bit) << 1);
+}
+
+function renderTileset(context: CanvasRenderingContext2D | null, tilesetData: Array<number>, palette: number): void {
+  if (context !== null) {
+    context.clearRect(0, 0, 256, 256);
+
+    let tileX: number = 0;
+    let tileY: number = 0;
+    let row: number = 0;
+
+    let tileBatch: Array<string> = [];
+
+    const COLOR_MAP = [
+      (getBit(palette, 1) << 1) | getBit(palette, 0),
+      (getBit(palette, 3) << 1) | getBit(palette, 2),
+      (getBit(palette, 5) << 1) | getBit(palette, 4),
+      (getBit(palette, 7) << 1) | getBit(palette, 6)
+    ];
+
+    for (let i = 0; i < tilesetData.length - 1; i += 2) {
+      const loBits: number = tilesetData[i];
+      const hiBits: number = tilesetData[i + 1];
+      const px0: number = mergeBits(loBits, hiBits, 7);
+      const px1: number = mergeBits(loBits, hiBits, 6);
+      const px2: number = mergeBits(loBits, hiBits, 5);
+      const px3: number = mergeBits(loBits, hiBits, 4);
+      const px4: number = mergeBits(loBits, hiBits, 3);
+      const px5: number = mergeBits(loBits, hiBits, 2);
+      const px6: number = mergeBits(loBits, hiBits, 1);
+      const px7: number = mergeBits(loBits, hiBits, 0);
+
+      if (row === 8) {
+        row = 0;
+        tileX += 1;
+      }
+
+      if (tileX === 32) {
+        tileX = 0;
+        tileY += 1;
+      }
+
+      context.fillStyle = COLORS[COLOR_MAP[px0]];
+      context.fillRect((tileX * 8) + 0, (tileY * 8) + row, 1, 1);
+      context.fillStyle = COLORS[COLOR_MAP[px1]];
+      context.fillRect((tileX * 8) + 1, (tileY * 8) + row, 1, 1);
+      context.fillStyle = COLORS[COLOR_MAP[px2]];
+      context.fillRect((tileX * 8) + 2, (tileY * 8) + row, 1, 1);
+      context.fillStyle = COLORS[COLOR_MAP[px3]];
+      context.fillRect((tileX * 8) + 3, (tileY * 8) + row, 1, 1);
+      context.fillStyle = COLORS[COLOR_MAP[px4]];
+      context.fillRect((tileX * 8) + 4, (tileY * 8) + row, 1, 1);
+      context.fillStyle = COLORS[COLOR_MAP[px5]];
+      context.fillRect((tileX * 8) + 5, (tileY * 8) + row, 1, 1);
+      context.fillStyle = COLORS[COLOR_MAP[px6]];
+      context.fillRect((tileX * 8) + 6, (tileY * 8) + row, 1, 1);
+      context.fillStyle = COLORS[COLOR_MAP[px7]];
+      context.fillRect((tileX * 8) + 7, (tileY * 8) + row, 1, 1);
+
+      row++;
+    }
+  }
+}
+
 input.addEventListener('change', function(this: HTMLInputElement, evt) {
   var files = this.files;
   if (files && files.length > 0) {
@@ -97,6 +173,9 @@ worker.onmessage = function(msg) {
     updateRegisterUI(msg.data.registers);
     updateFlagUI(msg.data.registers.F);
     updateOpcodeUI(msg.data.opcode);
+    // console.log(msg.data.tileSet);
+    renderTileset(tileSet1Context, msg.data.tileSetA, msg.data.palette);
+    renderTileset(tileSet2Context, msg.data.tileSetB, msg.data.palette);
     break;
   }
 };
