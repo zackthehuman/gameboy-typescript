@@ -193,7 +193,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
     const hi: number = pc.fetch().toByte() << 8;
     pc.increment();
 
-    registers[name] = hi | lo;
+    registers[name] = (hi | lo) & 0xFFFF;
 
     return 12;
   }
@@ -764,7 +764,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
     const hi: number = pc.fetch().toByte() << 8;
     pc.increment();
 
-    registers[name] = hi | lo;
+    registers[name] = (hi | lo) & 0xFFFF;
 
     return 12;
   }
