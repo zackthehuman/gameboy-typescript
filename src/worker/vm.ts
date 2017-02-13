@@ -3,133 +3,132 @@ import { Memory } from './memory';
 import { MMU } from './mmu';
 import { ProgramCounter } from './program-counter';
 
+const enum RegisterOrder {
+  A, F,
+  B, C,
+  D, E,
+  H, L
+}
+
 class RegistersImpl implements Registers {
-  private a: number;
-  private b: number;
-  private c: number;
-  private d: number;
-  private e: number;
-  private f: number;
-  private h: number;
-  private l: number;
+  private storage: ArrayBuffer;
+  private view: DataView;
   private sp: number;
   private pc: number;
 
   constructor() {
+    this.storage = new ArrayBuffer(8);
+    this.view = new DataView(this.storage, 0, 8);
     this.clear();
   }
 
   clear(): void {
-    this.a = 0;
-    this.b = 0;
-    this.c = 0;
-    this.d = 0;
-    this.e = 0;
-    this.f = 0;
-    this.h = 0;
-    this.l = 0;
+    this.A = 0;
+    this.B = 0;
+    this.C = 0;
+    this.D = 0;
+    this.E = 0;
+    this.F = 0;
+    this.H = 0;
+    this.L = 0;
     this.sp = 0;
     this.pc = 0;
   }
 
   get A(): number {
-    return this.a;
+    return this.view.getUint8(RegisterOrder.A);
   }
 
   set A(value: number) {
-    this.a = value & 0xFF;
+    this.view.setUint8(RegisterOrder.A, value);
   }
 
   get B(): number {
-    return this.b;
+    return this.view.getUint8(RegisterOrder.B);
   }
 
   set B(value: number) {
-    this.b = value & 0xFF;
+    this.view.setUint8(RegisterOrder.B, value);
   }
 
   get C(): number {
-    return this.c;
+    return this.view.getUint8(RegisterOrder.C);
   }
 
   set C(value: number) {
-    this.c = value & 0xFF;
+    this.view.setUint8(RegisterOrder.C, value);
   }
 
   get D(): number {
-    return this.d;
+    return this.view.getUint8(RegisterOrder.D);
   }
 
   set D(value: number) {
-    this.d = value & 0xFF;
+    this.view.setUint8(RegisterOrder.D, value);
   }
 
   get E(): number {
-    return this.e;
+    return this.view.getUint8(RegisterOrder.E);
   }
 
   set E(value: number) {
-    this.e = value & 0xFF;
+    this.view.setUint8(RegisterOrder.E, value);
   }
 
   get F(): number {
-    return this.f;
+    return this.view.getUint8(RegisterOrder.F);
   }
 
   set F(value: number) {
-    this.f = value & 0xFF;
+    this.view.setUint8(RegisterOrder.F, value);
   }
 
   get H(): number {
-    return this.h;
+    return this.view.getUint8(RegisterOrder.H);
   }
 
   set H(value: number) {
-    this.h = value & 0xFF;
+    this.view.setUint8(RegisterOrder.H, value);
   }
 
   get L(): number {
-    return this.l;
+    return this.view.getUint8(RegisterOrder.L);
   }
 
   set L(value: number) {
-    this.l = value & 0xFF;
+    this.view.setUint8(RegisterOrder.L, value);
   }
 
   get AF(): number {
-    return (this.a << 8) | this.f;
+    return this.view.getUint16(RegisterOrder.A);
   }
 
   set AF(value: number) {
-    this.a = (value & 0xFF00) >> 8;
-    this.f = value & 0x00FF;
+    this.view.setUint16(RegisterOrder.A, value);
   }
 
   get BC(): number {
-    return (this.b << 8) | this.c;
+    return this.view.getUint16(RegisterOrder.B);
   }
 
   set BC(value: number) {
-    this.b = (value & 0xFF00) >> 8;
-    this.c = value & 0x00FF;
+    this.view.setUint16(RegisterOrder.B, value);
   }
 
   get DE(): number {
-    return (this.d << 8) | this.e;
+    return this.view.getUint16(RegisterOrder.D);
   }
 
   set DE(value: number) {
-    this.d = (value & 0xFF00) >> 8;
-    this.e = value & 0x00FF;
+    this.view.setUint16(RegisterOrder.D, value);
   }
 
   get HL(): number {
-    return (this.h << 8) | this.l;
+    return this.view.getUint16(RegisterOrder.H);
   }
 
   set HL(value: number) {
-    this.h = (value & 0xFF00) >> 8;
-    this.l = value & 0x00FF;
+    this.view.setUint16(RegisterOrder.H, value);
   }
 
   get SP(): number {
