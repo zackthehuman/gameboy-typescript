@@ -2,10 +2,10 @@ import { MemoryAccess } from './memory';
 import { ProgramCounter } from './program-counter';
 
 export interface Opcode {
-  readonly hi: number,
-  readonly lo: number,
-  toByte(): number, // Unsigned
-  toSignedByte(): number
+  instruction: number;
+  byte: number;
+  signedByte: number;
+  word: number;
 }
 
 export type OpcodeHandler = () => number;

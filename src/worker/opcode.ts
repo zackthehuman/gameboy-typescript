@@ -1,22 +1,23 @@
-import { signedByte } from './bitops';
+import { signedByte as toSigned } from './bitops';
+import { MemoryAccess } from './memory';
 
-export class OpcodeImpl {
-  constructor(public raw: number) {
+export class OpcodeView {
+  constructor(private memory: MemoryAccess, public offset: number) {
   }
 
-  get hi(): number {
-    return (this.raw & 0xF0) >> 4;
+  get instruction(): number {
+    return this.memory.readByte(this.offset);
   }
 
-  get lo(): number {
-    return this.raw & 0x0F;
+  get byte(): number {
+    return this.memory.readByte(this.offset + 1);
   }
 
-  toByte(): number {
-    return this.raw & 0xFF;
+  get signedByte(): number {
+    return toSigned(this.byte);
   }
 
-  toSignedByte(): number {
-    return signedByte(this.toByte());
+  get word(): number {
+    return this.memory.readWord(this.offset + 1);
   }
 }
