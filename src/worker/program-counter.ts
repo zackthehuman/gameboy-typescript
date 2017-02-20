@@ -1,17 +1,17 @@
 import { MemoryAccess } from './memory';
 import { Opcode, Registers } from './interfaces';
-import { OpcodeImpl } from './opcode';
+import { OpcodeView } from './opcode';
 
 export class ProgramCounter {
   private memory: MemoryAccess;
   private registers: Registers;
-  private op: OpcodeImpl;
+  private op: OpcodeView;
 
   constructor(memory: MemoryAccess, registers: Registers) {
     this.memory = memory;
     this.registers = registers;
     this.jump(0);
-    this.op = new OpcodeImpl(0);
+    this.op = new OpcodeView(this.memory, 0);
   }
 
   get offset(): number {
@@ -31,7 +31,7 @@ export class ProgramCounter {
   }
 
   fetch(): Opcode {
-    this.op.raw = this.memory.readByte(this.offset);
+    this.op.offset = this.offset;
     return this.op;
   }
 }
