@@ -18,12 +18,12 @@ export class ProgramCounter {
     return this.registers.PC;
   }
 
-  increment(): void {
-    this.registers.PC++;
+  increment(offset: number = 1): void {
+    this.registers.PC += offset;
   }
 
-  decrement(): void {
-    this.registers.PC--;
+  decrement(offset: number = 1): void {
+    this.registers.PC -= offset;
   }
 
   jump(address: number): void {
