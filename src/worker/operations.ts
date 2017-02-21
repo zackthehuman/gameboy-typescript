@@ -12,6 +12,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
     length: number
   }
 
+  let readCB: boolean = false;
   const { registers, memory, pc } = vm;
 
   function setFlag(flag: Flags): void {
@@ -751,6 +752,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_valueAtAddress_C_A(op: Opcode): number {
+    debugger;
     op.size = 2;
     const { A, C } = registers;
 
@@ -856,7 +858,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
   function CB_PREFIX(op: Opcode): number {
     // TODO: There might a nicer way to dispatch the CB codes.
     op.size = 1;
-    return 4 + Cb[op.byte](op);
+    readCB = true;
+    return 4;
   }
 
   function CALL(op: Opcode): number {
@@ -959,37 +962,37 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function CB_RL_A(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
     return RL('A');
   }
 
   function CB_RL_B(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
     return RL('B');
   }
 
   function CB_RL_C(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
     return RL('C');
   }
 
   function CB_RL_D(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
     return RL('D');
   }
 
   function CB_RL_E(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
     return RL('E');
   }
 
   function CB_RL_H(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
     return RL('H');
   }
 
   function CB_RL_L(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
     return RL('L');
   }
 
@@ -1016,7 +1019,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function CB_BIT_7_H(op: Opcode): number {
-    op.size = 2;
+    op.size = 1;
 
     if (getBit(registers.H, 7) == 0) {
         setFlag(Flags.Z);
@@ -1057,7 +1060,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   return {
     execOp(opcode: Opcode): number {
-      const cycles = Op[opcode.instruction](opcode);
+      const table: OpTable = readCB ? (readCB = false, Cb) : Op;
+      const cycles = table[opcode.instruction](opcode);
       vm.cycleCount += cycles;
       vm.pc.increment(opcode.size);
       return cycles;

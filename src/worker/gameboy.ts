@@ -50,6 +50,7 @@ function readROMFile(file: File) {
 
 function cycle() {
   const op: Opcode = vm.pc.fetch();
+  op.size = 0;
   let cycleCount: number = 0;
 
   if (!vm.didFinishBootROM) {
