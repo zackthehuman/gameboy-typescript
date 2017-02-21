@@ -6,9 +6,10 @@ export interface Opcode {
   byte: number;
   signedByte: number;
   word: number;
+  size: number;
 }
 
-export type OpcodeHandler = () => number;
+export type OpcodeHandler = (op: Opcode) => number;
 
 export interface VirtualMachine {
   cycleCount: number;
