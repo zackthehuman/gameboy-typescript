@@ -127,7 +127,7 @@ function pause() {
   postMessage({
     cmd: 'debug',
     registers: vm.registers.toJSON(),
-    opcode: vm.pc.fetch().toByte(),
+    opcode: vm.pc.fetch().byte,
     tileSetA,
     tileSetB,
     palette
