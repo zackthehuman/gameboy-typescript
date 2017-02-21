@@ -1,6 +1,6 @@
 import { ByteRegister, Opcode, OpcodeHandler, WordRegister, VirtualMachine } from './interfaces';
 import { Flags } from './constants';
-import { Bit, formatByte, getBit, rotateByteLeft } from './bitops';
+import { Bit, getBit, rotateByteLeft } from './bitops';
 
 export interface Operations {
   execOp(op: Opcode): number;
@@ -34,15 +34,13 @@ export default function createOperations(vm: VirtualMachine): Operations {
   const Cb: OpTable = new Array<OpcodeHandler>(0xFF);
 
   for (let i: number = 0; i < Op.length; ++i) {
-    const opcode: string = formatByte(i);
-
-    Op[i] = function unhandledOpcode(): number {
-      vm.panic(`Unhandled opcode: 0x${opcode}`);
+    Op[i] = function unhandledOpcode(op: Opcode): number {
+      vm.panic(`Unhandled opcode: 0x${op.instruction}`);
       return 0;
     };
 
-    Cb[i] = function unhandledCBOpcode(): number {
-      vm.panic(`Unhandled CB opcode: 0x${opcode}`);
+    Cb[i] = function unhandledCBOpcode(op: Opcode): number {
+      vm.panic(`Unhandled CB opcode: 0x${op.instruction}`);
       return 0;
     };
   }
@@ -172,68 +170,62 @@ export default function createOperations(vm: VirtualMachine): Operations {
   Cb[0x7C] = CB_BIT_7_H;
 
 
-  function NOP(): number {
-    pc.increment();
+  function NOP(op: Opcode): number {
+    op.size = 1;
     return 4;
   }
 
-  function LD_BC_d16(): number {
-    pc.increment();
-    return LD_d16('BC');
+  function LD_BC_d16(op: Opcode): number {
+    op.size = 3;
+    return LD_d16(op, 'BC');
   }
 
-  function LD_DE_d16(): number {
-    pc.increment();
-    return LD_d16('DE');
+  function LD_DE_d16(op: Opcode): number {
+    op.size = 3;
+    return LD_d16(op, 'DE');
   }
 
-  function LD_d16(name: WordRegister): number {
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
-
-    registers[name] = (hi | lo) & 0xFFFF;
-
+  function LD_d16(op: Opcode, name: WordRegister): number {
+    registers[name] = op.word;
     return 12;
   }
 
-  function LD_BC_A(): number {
-    pc.increment();
-    const { A, BC } = registers;
+  function LD_BC_A(op: Opcode): number {
+    op.size = 1;
 
+    const { A, BC } = registers;
     memory.writeByte(0xFF00 + BC, A);
 
     return 8;
   }
 
-  function LD_A_B(): number {
-    pc.increment();
+  function LD_A_B(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_8bit('A', 'B');
   }
 
-  function LD_A_C(): number {
-    pc.increment();
+  function LD_A_C(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_8bit('A', 'C');
   }
 
-  function LD_A_D(): number {
-    pc.increment();
+  function LD_A_D(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_8bit('A', 'D');
   }
 
-  function LD_A_E(): number {
-    pc.increment();
+  function LD_A_E(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_8bit('A', 'E');
   }
 
-  function LD_A_H(): number {
-    pc.increment();
+  function LD_A_H(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_8bit('A', 'H');
   }
 
-  function LD_A_L(): number {
-    pc.increment();
+  function LD_A_L(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_8bit('A', 'L');
   }
 
@@ -242,24 +234,24 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function LD_A_BC(): number {
-    pc.increment();
+  function LD_A_BC(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_16bit('A', 'BC');
   }
 
-  function LD_A_DE(): number {
-    pc.increment();
+  function LD_A_DE(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_16bit('A', 'DE');
   }
 
-  function LD_A_HL(): number {
-    pc.increment();
+  function LD_A_HL(op: Opcode): number {
+    op.size = 1;
     return LD_8bit_16bit('A', 'HL');
   }
 
-  function LD_A_nn(): number {
-    pc.increment();
-    return LD_8bit_address('A');
+  function LD_A_nn(op: Opcode): number {
+    op.size = 3;
+    return LD_8bit_address(op, 'A');
   }
 
   function LD_8bit_16bit(dest: ByteRegister, source: WordRegister): number {
@@ -267,35 +259,28 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function LD_8bit_address(name: ByteRegister): number {
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
-    const address = (hi | lo) & 0xFFFF;
-
-    registers[name] = memory.readByte(address);
-
+  function LD_8bit_address(op: Opcode, name: ByteRegister): number {
+    registers[name] = memory.readByte(op.word);
     return 16;
   }
 
-  function INC_BC(): number {
-    pc.increment();
+  function INC_BC(op: Opcode): number {
+    op.size = 1;
     return INC_WORD('BC');
   }
 
-  function INC_DE(): number {
-    pc.increment();
+  function INC_DE(op: Opcode): number {
+    op.size = 1;
     return INC_WORD('DE');
   }
 
-  function INC_HL(): number {
-    pc.increment();
+  function INC_HL(op: Opcode): number {
+    op.size = 1;
     return INC_WORD('HL');
   }
 
-  function INC_SP(): number {
-    pc.increment();
+  function INC_SP(op: Opcode): number {
+    op.size = 1;
     return INC_WORD('SP');
   }
 
@@ -304,38 +289,38 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function INC_A(): number {
-    pc.increment();
+  function INC_A(op: Opcode): number {
+    op.size = 1;
     return INC_BYTE('A');
   }
 
-  function INC_B(): number {
-    pc.increment();
+  function INC_B(op: Opcode): number {
+    op.size = 1;
     return INC_BYTE('B');
   }
 
-  function INC_C(): number {
-    pc.increment();
+  function INC_C(op: Opcode): number {
+    op.size = 1;
     return INC_BYTE('C');
   }
 
-  function INC_D(): number {
-    pc.increment();
+  function INC_D(op: Opcode): number {
+    op.size = 1;
     return INC_BYTE('D');
   }
 
-  function INC_E(): number {
-    pc.increment();
+  function INC_E(op: Opcode): number {
+    op.size = 1;
     return INC_BYTE('E');
   }
 
-  function INC_H(): number {
-    pc.increment();
+  function INC_H(op: Opcode): number {
+    op.size = 1;
     return INC_BYTE('H');
   }
 
-  function INC_L(): number {
-    pc.increment();
+  function INC_L(op: Opcode): number {
+    op.size = 1;
     return INC_BYTE('L');
   }
 
@@ -364,38 +349,38 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function DEC_A(): number {
-    pc.increment();
+  function DEC_A(op: Opcode): number {
+    op.size = 1;
     return DEC('A');
   }
 
-  function DEC_B(): number {
-    pc.increment();
+  function DEC_B(op: Opcode): number {
+    op.size = 1;
     return DEC('B');
   }
 
-  function DEC_C(): number {
-    pc.increment();
+  function DEC_C(op: Opcode): number {
+    op.size = 1;
     return DEC('C');
   }
 
-  function DEC_D(): number {
-    pc.increment();
+  function DEC_D(op: Opcode): number {
+    op.size = 1;
     return DEC('D');
   }
 
-  function DEC_E(): number {
-    pc.increment();
+  function DEC_E(op: Opcode): number {
+    op.size = 1;
     return DEC('E');
   }
 
-  function DEC_H(): number {
-    pc.increment();
+  function DEC_H(op: Opcode): number {
+    op.size = 1;
     return DEC('H');
   }
 
-  function DEC_L(): number {
-    pc.increment();
+  function DEC_L(op: Opcode): number {
+    op.size = 1;
     return DEC('L');
   }
 
@@ -425,52 +410,50 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function ADD_A_A(): number {
-    pc.increment();
+  function ADD_A_A(op: Opcode): number {
+    op.size = 1;
     return ADD_register_register('A', 'A');
   }
 
-  function ADD_A_B(): number {
-    pc.increment();
+  function ADD_A_B(op: Opcode): number {
+    op.size = 1;
     return ADD_register_register('A', 'B');
   }
 
-  function ADD_A_C(): number {
-    pc.increment();
+  function ADD_A_C(op: Opcode): number {
+    op.size = 1;
     return ADD_register_register('A', 'C');
   }
 
-  function ADD_A_D(): number {
-    pc.increment();
+  function ADD_A_D(op: Opcode): number {
+    op.size = 1;
     return ADD_register_register('A', 'D');
   }
 
-  function ADD_A_E(): number {
-    pc.increment();
+  function ADD_A_E(op: Opcode): number {
+    op.size = 1;
     return ADD_register_register('A', 'E');
   }
 
-  function ADD_A_H(): number {
-    pc.increment();
+  function ADD_A_H(op: Opcode): number {
+    op.size = 1;
     return ADD_register_register('A', 'H');
   }
 
-  function ADD_A_L(): number {
-    pc.increment();
+  function ADD_A_L(op: Opcode): number {
+    op.size = 1;
     return ADD_register_register('A', 'L');
   }
 
-  function ADD_A_HL(): number {
-    pc.increment();
+  function ADD_A_HL(op: Opcode): number {
+    op.size = 1;
     ADD_register_value('A', memory.readByte(registers.HL));
     return 8;
   }
 
-  function ADD_A_d8(): number {
-    pc.increment();
-    const value: number = pc.fetch().toSignedByte();
-    pc.increment();
-    ADD_register_value('A', value);
+  function ADD_A_d8(op: Opcode): number {
+    op.size = 2;
+    ADD_register_value('A', op.signedByte);
     return 8;
   }
 
@@ -502,38 +485,38 @@ export default function createOperations(vm: VirtualMachine): Operations {
     }
   }
 
-  function SUB_A(): number {
-    pc.increment();
+  function SUB_A(op: Opcode): number {
+    op.size = 1;
     return SUB_register('A');
   }
 
-  function SUB_B(): number {
-    pc.increment();
+  function SUB_B(op: Opcode): number {
+    op.size = 1;
     return SUB_register('B');
   }
 
-  function SUB_C(): number {
-    pc.increment();
+  function SUB_C(op: Opcode): number {
+    op.size = 1;
     return SUB_register('C');
   }
 
-  function SUB_D(): number {
-    pc.increment();
+  function SUB_D(op: Opcode): number {
+    op.size = 1;
     return SUB_register('D');
   }
 
-  function SUB_E(): number {
-    pc.increment();
+  function SUB_E(op: Opcode): number {
+    op.size = 1;
     return SUB_register('E');
   }
 
-  function SUB_H(): number {
-    pc.increment();
+  function SUB_H(op: Opcode): number {
+    op.size = 1;
     return SUB_register('H');
   }
 
-  function SUB_L(): number {
-    pc.increment();
+  function SUB_L(op: Opcode): number {
+    op.size = 1;
     return SUB_register('L');
   }
 
@@ -565,81 +548,79 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function LD_A_d8(): number {
-    pc.increment();
-    return LD_register_d8('A');
+  function LD_A_d8(op: Opcode): number {
+    op.size = 2;
+    return LD_register_d8(op, 'A');
   }
 
-  function LD_B_d8(): number {
-    pc.increment();
-    return LD_register_d8('B');
+  function LD_B_d8(op: Opcode): number {
+    op.size = 2;
+    return LD_register_d8(op, 'B');
   }
 
-  function LD_C_d8(): number {
-    pc.increment();
-    return LD_register_d8('C');
+  function LD_C_d8(op: Opcode): number {
+    op.size = 2;
+    return LD_register_d8(op, 'C');
   }
 
-  function LD_D_d8(): number {
-    pc.increment();
-    return LD_register_d8('D');
+  function LD_D_d8(op: Opcode): number {
+    op.size = 2;
+    return LD_register_d8(op, 'D');
   }
 
-  function LD_E_d8(): number {
-    pc.increment();
-    return LD_register_d8('E');
+  function LD_E_d8(op: Opcode): number {
+    op.size = 2;
+    return LD_register_d8(op, 'E');
   }
 
-  function LD_L_d8(): number {
-    pc.increment();
-    return LD_register_d8('L');
+  function LD_L_d8(op: Opcode): number {
+    op.size = 2;
+    return LD_register_d8(op, 'L');
   }
 
-  function LD_H_d8(): number {
-    pc.increment();
-    return LD_register_d8('H');
+  function LD_H_d8(op: Opcode): number {
+    op.size = 2;
+    return LD_register_d8(op, 'H');
   }
 
-  function LD_register_d8(name: ByteRegister): number {
-    const value: number = pc.fetch().toByte();
-    pc.increment();
-    registers[name] = value;
+  function LD_register_d8(op: Opcode, name: ByteRegister): number {
+    registers[name] = op.byte;
 
     return 8;
   }
 
-  function LD_A_A(): number {
-    pc.increment();
+  function LD_A_A(op: Opcode): number {
+    op.size = 1;
     return LD_register_register('A', 'A');
   }
 
-  function LD_B_A(): number {
-    pc.increment();
+  function LD_B_A(op: Opcode): number {
+    op.size = 1;
     return LD_register_register('B', 'A');
   }
 
-  function LD_C_A(): number {
-    pc.increment();
+  function LD_C_A(op: Opcode): number {
+    op.size = 1;
     return LD_register_register('C', 'A');
   }
 
-  function LD_D_A(): number {
-    pc.increment();
+  function LD_D_A(op: Opcode): number {
+    op.size = 1;
     return LD_register_register('D', 'A');
   }
 
-  function LD_E_A(): number {
-    pc.increment();
+  function LD_E_A(op: Opcode): number {
+    op.size = 1;
     return LD_register_register('E', 'A');
   }
 
-  function LD_H_A(): number {
-    pc.increment();
+  function LD_H_A(op: Opcode): number {
+    op.size = 1;
     return LD_register_register('H', 'A');
   }
 
-  function LD_L_A(): number {
-    pc.increment();
+  function LD_L_A(op: Opcode): number {
+    op.size = 1;
     return LD_register_register('L', 'A');
   }
 
@@ -648,14 +629,15 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function RL_A(): number {
-    pc.increment();
+  function RL_A(op: Opcode): number {
+    op.size = 1;
     RL('A');
     return 4;
   }
 
-  function RLCA(): number {
-    pc.increment();
+  function RLCA(op: Opcode): number {
+    op.size = 1;
+
     const { A } = registers;
 
     clearAllFlags();
@@ -671,14 +653,10 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function LD_nn_A(): number {
-    pc.increment();
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
+  function LD_nn_A(op: Opcode): number {
+    op.size = 3;
 
-    const address = (hi | lo) & 0xFFFF;
+    const address = op.word;
     const { A } = registers;
 
     memory.writeByte(address, A);
@@ -686,42 +664,35 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 16;
   }
 
-  function LD_a16_SP(): number {
-    pc.increment();
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
+  function LD_a16_SP(op: Opcode): number {
+    op.size = 3;
 
-    const address = (hi | lo) & 0xFFFF;
-    registers.SP = address;
+    registers.SP = op.word;
 
     return 20;
   }
 
-  function LDH_d8_A(): number {
-    pc.increment();
+  function LDH_d8_A(op: Opcode): number {
+    op.size = 2;
     const { A } = registers;
-    const offset: number = pc.fetch().toByte();
-    pc.increment();
+    const offset: number = op.byte;
 
     memory.writeByte(0xFF00 + offset, A);
 
     return 12;
   }
 
-  function LDH_A_d8(): number {
-    pc.increment();
-    const offset: number = pc.fetch().toByte();
-    pc.increment();
+  function LDH_A_d8(op: Opcode): number {
+    op.size = 2;
+    const offset: number = op.byte;
 
     registers.A = memory.readByte(0xFF00 + offset);
 
     return 12;
   }
 
-  function ADD_HL_BC(): number {
-    pc.increment();
+  function ADD_HL_BC(op: Opcode): number {
+    op.size = 1;
     const { HL, BC } = registers;
     const result = HL + BC;
     const wasZeroSet = isFlagSet(Flags.Z);
@@ -748,29 +719,23 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function LD_SP_d16(): number {
-    pc.increment();
-    return LD_register_d16('SP');
+  function LD_SP_d16(op: Opcode): number {
+    op.size = 3;
+    return LD_register_d16(op, 'SP');
   }
 
-  function LD_HL_d16(): number {
-    pc.increment();
-    return LD_register_d16('HL');
+  function LD_HL_d16(op: Opcode): number {
+    op.size = 3;
+    return LD_register_d16(op, 'HL');
   }
 
-  function LD_register_d16(name: WordRegister): number {
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
-
-    registers[name] = (hi | lo) & 0xFFFF;
-
+  function LD_register_d16(op: Opcode, name: WordRegister): number {
+    registers[name] = op.word;
     return 12;
   }
 
-  function XOR_A(): number {
-    pc.increment();
+  function XOR_A(op: Opcode): number {
+    op.size = 1;
     const { A } = registers;
     const result: number = registers.A ^= A;
 
@@ -785,8 +750,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function LD_valueAtAddress_C_A(): number {
-    pc.increment();
+  function LD_valueAtAddress_C_A(op: Opcode): number {
+    op.size = 2;
     const { A, C } = registers;
 
     memory.writeByte(0xFF00 + C, A);
@@ -794,8 +759,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function LD_HL_A(): number {
-    pc.increment();
+  function LD_HL_A(op: Opcode): number {
+    op.size = 1;
     const { A, HL } = registers;
 
     memory.writeByte(HL, A);
@@ -803,16 +768,16 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function LDI_HL_A(): number {
-    pc.increment();
+  function LDI_HL_A(op: Opcode): number {
+    op.size = 1;
     const { A, HL } = registers;
     memory.writeByte(HL, A);
     registers.HL++;
     return 8;
   }
 
-  function LDD_HL_A(): number {
-    pc.increment();
+  function LDD_HL_A(op: Opcode): number {
+    op.size = 1;
     const { A, HL } = registers;
     memory.writeByte(HL, A);
     registers.HL--;
@@ -821,20 +786,18 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   // LDD_HL_A.disassembly = 'LD (HL-),A';
 
-  function JR_r8(): number {
-    pc.increment();
-    const offset: number = pc.fetch().toSignedByte();
-    pc.increment();
+  function JR_r8(op: Opcode): number {
+    op.size = 2;
+    const offset: number = op.signedByte;
 
     pc.jump(pc.offset + offset);
 
     return 12;
   }
 
-  function JR_NZ_r8(): number {
-    pc.increment();
-    const offset: number = pc.fetch().toSignedByte();
-    pc.increment();
+  function JR_NZ_r8(op: Opcode): number {
+    op.size = 2;
+    const offset: number = op.signedByte;
 
     if (!isFlagSet(Flags.Z)) {
       pc.jump(pc.offset + offset);
@@ -844,10 +807,9 @@ export default function createOperations(vm: VirtualMachine): Operations {
     }
   }
 
-  function JR_Z_r8(): number {
-    pc.increment();
-    const offset: number = pc.fetch().toSignedByte();
-    pc.increment();
+  function JR_Z_r8(op: Opcode): number {
+    op.size = 2;
+    const offset: number = op.signedByte;
 
     if (isFlagSet(Flags.Z)) {
       pc.jump(pc.offset + offset);
@@ -857,10 +819,9 @@ export default function createOperations(vm: VirtualMachine): Operations {
     }
   }
 
-  function JR_NC_r8(): number {
-    pc.increment();
-    const offset: number = pc.fetch().toSignedByte();
-    pc.increment();
+  function JR_NC_r8(op: Opcode): number {
+    op.size = 2;
+    const offset: number = op.signedByte;
 
     if (!isFlagSet(Flags.C)) {
       pc.jump(pc.offset + offset);
@@ -870,10 +831,9 @@ export default function createOperations(vm: VirtualMachine): Operations {
     }
   }
 
-  function JR_C_r8(): number {
-    pc.increment();
-    const offset: number = pc.fetch().toSignedByte();
-    pc.increment();
+  function JR_C_r8(op: Opcode): number {
+    op.size = 2;
+    const offset: number = op.signedByte;
 
     if (isFlagSet(Flags.C)) {
       pc.jump(pc.offset + offset);
@@ -883,34 +843,26 @@ export default function createOperations(vm: VirtualMachine): Operations {
     }
   }
 
-  function JP_d16(): number {
-    pc.increment();
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
+  function JP_d16(op: Opcode): number {
+    op.size = 3;
 
-    const address: number = hi | lo;
+    const address: number = op.word;
 
     pc.jump(address);
 
     return 12;
   }
 
-  function CB_PREFIX(): number {
-    pc.increment();
-    const cbOpcode: number = pc.fetch().toByte();
-    return 4 + Cb[cbOpcode]();
+  function CB_PREFIX(op: Opcode): number {
+    // TODO: There might a nicer way to dispatch the CB codes.
+    op.size = 1;
+    return 4 + Cb[op.byte](op);
   }
 
-  function CALL(): number {
-    pc.increment();
-    const lo: number = pc.fetch().toByte();
-    pc.increment();
-    const hi: number = pc.fetch().toByte() << 8;
-    pc.increment();
+  function CALL(op: Opcode): number {
+    op.size = 3;
 
-    const address: number = hi | lo;
+    const address: number = op.word;
     const nextInstructionAddress: number = pc.offset;
 
     stackPush(nextInstructionAddress);
@@ -920,29 +872,29 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 24;
   }
 
-  function RET(): number {
-    pc.increment();
+  function RET(op: Opcode): number {
+    op.size = 1;
     pc.jump(stackPop());
-    return 8;
+    return 16;
   }
 
-  function PUSH_AF(): number {
-    pc.increment();
+  function PUSH_AF(op: Opcode): number {
+    op.size = 1;
     return PUSH(registers.AF);
   }
 
-  function PUSH_BC(): number {
-    pc.increment();
+  function PUSH_BC(op: Opcode): number {
+    op.size = 1;
     return PUSH(registers.BC);
   }
 
-  function PUSH_DE(): number {
-    pc.increment();
+  function PUSH_DE(op: Opcode): number {
+    op.size = 1;
     return PUSH(registers.DE);
   }
 
-  function PUSH_HL(): number {
-    pc.increment();
+  function PUSH_HL(op: Opcode): number {
+    op.size = 1;
     return PUSH(registers.HL);
   }
 
@@ -962,26 +914,22 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return address;
   }
 
-  function POP_BC(): number {
-    pc.increment();
+  function POP_BC(op: Opcode): number {
+    op.size = 1;
     registers.BC = memory.readWord(registers.SP);
     registers.SP += 2;
 
     return 12;
   }
 
-  function CP_d8(): number {
-    pc.increment();
-    const value: number = pc.fetch().toByte();
-    pc.increment();
-
-    CP_IMPL(value);
-
+  function CP_d8(op: Opcode): number {
+    op.size = 2;
+    CP_IMPL(op.byte);
     return 8;
   }
 
-  function CP_HL(): number {
-    pc.increment();
+  function CP_HL(op: Opcode): number {
+    op.size = 1;
     const { HL } = registers;
     const value: number = memory.readByte(HL);
 
@@ -1010,38 +958,38 @@ export default function createOperations(vm: VirtualMachine): Operations {
     }
   }
 
-  function CB_RL_A(): number {
-    pc.increment();
+  function CB_RL_A(op: Opcode): number {
+    op.size = 2;
     return RL('A');
   }
 
-  function CB_RL_B(): number {
-    pc.increment();
+  function CB_RL_B(op: Opcode): number {
+    op.size = 2;
     return RL('B');
   }
 
-  function CB_RL_C(): number {
-    pc.increment();
+  function CB_RL_C(op: Opcode): number {
+    op.size = 2;
     return RL('C');
   }
 
-  function CB_RL_D(): number {
-    pc.increment();
+  function CB_RL_D(op: Opcode): number {
+    op.size = 2;
     return RL('D');
   }
 
-  function CB_RL_E(): number {
-    pc.increment();
+  function CB_RL_E(op: Opcode): number {
+    op.size = 2;
     return RL('E');
   }
 
-  function CB_RL_H(): number {
-    pc.increment();
+  function CB_RL_H(op: Opcode): number {
+    op.size = 2;
     return RL('H');
   }
 
-  function CB_RL_L(): number {
-    pc.increment();
+  function CB_RL_L(op: Opcode): number {
+    op.size = 2;
     return RL('L');
   }
 
@@ -1067,8 +1015,9 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function CB_BIT_7_H(): number {
-    pc.increment();
+  function CB_BIT_7_H(op: Opcode): number {
+    op.size = 2;
+
     if (getBit(registers.H, 7) == 0) {
         setFlag(Flags.Z);
     } else {
@@ -1081,8 +1030,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 8;
   }
 
-  function DI(): number {
-    pc.increment();
+  function DI(op: Opcode): number {
+    op.size = 1;
     // This instruction disables interrupts but not
     // immediately. Interrupts are disabled after
     // instruction after DI is executed.
@@ -1094,8 +1043,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
     return 4;
   }
 
-  function EI(): number {
-    pc.increment();
+  function EI(op: Opcode): number {
+    op.size = 1;
     // Enable interrupts. This intruction enables interrupts
     // but not immediately. Interrupts are enabled after
     // instruction after EI is executed.
@@ -1108,8 +1057,9 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   return {
     execOp(opcode: Opcode): number {
-      const cycles = Op[opcode.toByte()]();
+      const cycles = Op[opcode.instruction](opcode);
       vm.cycleCount += cycles;
+      vm.pc.increment(opcode.size);
       return cycles;
     }
   };
