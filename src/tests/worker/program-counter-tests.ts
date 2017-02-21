@@ -51,6 +51,12 @@ export default function programCounterTests() {
     assert.equal(pc.offset, 3, 'offset is incremented by 1 (3)');
   });
 
+  QUnit.test('increment() increases the offset by a specificed amount', function(assert) {
+    assert.equal(pc.offset, 0, 'offset starts at 0');
+    pc.increment(5);
+    assert.equal(pc.offset, 5, 'offset is incremented by 5');
+  });
+
   QUnit.test('jump() sets the offset to a specified address', function(assert) {
     assert.equal(pc.offset, 0, 'offset starts at 0');
     pc.jump(10);
@@ -71,13 +77,21 @@ export default function programCounterTests() {
     assert.equal(pc.offset, 1, 'offset is decremented by 1 (1)');
   });
 
+  QUnit.test('decrement() decreases the offset by a specified amount', function(assert) {
+    pc.jump(4);
+
+    assert.equal(pc.offset, 4, 'offset starts at 4');
+    pc.decrement(3);
+    assert.equal(pc.offset, 1, 'offset is decremented by 1 (3)');
+  });
+
   QUnit.test('fetch() returns the byte in ROM at the current offset', function(assert) {
-    assert.equal(pc.fetch().toByte(), 0x01, 'byte at 0 is 0x01');
+    assert.equal(pc.fetch().instruction, 0x01, 'byte at 0 is 0x01');
     pc.increment();
-    assert.equal(pc.fetch().toByte(), 0x03, 'byte at 1 is 0x03');
+    assert.equal(pc.fetch().instruction, 0x03, 'byte at 1 is 0x03');
     pc.jump(5);
-    assert.equal(pc.fetch().toByte(), 0x37, 'byte at 5 is 0x37');
+    assert.equal(pc.fetch().instruction, 0x37, 'byte at 5 is 0x37');
     pc.decrement();
-    assert.equal(pc.fetch().toByte(), 0x13, 'byte at 4 is 0x13');
+    assert.equal(pc.fetch().instruction, 0x13, 'byte at 4 is 0x13');
   });
 }
