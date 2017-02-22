@@ -752,8 +752,7 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function LD_valueAtAddress_C_A(op: Opcode): number {
-    debugger;
-    op.size = 2;
+    op.size = 1;
     const { A, C } = registers;
 
     memory.writeByte(0xFF00 + C, A);
