@@ -788,64 +788,68 @@ export default function createOperations(vm: VirtualMachine): Operations {
   // LDD_HL_A.disassembly = 'LD (HL-),A';
 
   function JR_r8(op: Opcode): number {
-    op.size = 2;
+    op.size = 0; // Normally 2, but we need to JUMP and discard the size.;
     const offset: number = op.signedByte;
 
-    pc.jump(pc.offset + offset);
+    pc.jump(pc.offset + 2 + offset); // Add 2 here because we aren't moving the PC
 
     return 12;
   }
 
   function JR_NZ_r8(op: Opcode): number {
-    op.size = 2;
+    op.size = 0; // Normally 2, but we need to JUMP and discard the size.;
     const offset: number = op.signedByte;
 
     if (!isFlagSet(Flags.Z)) {
-      pc.jump(pc.offset + offset);
+      pc.jump(pc.offset + 2 + offset); // Add 2 here because we aren't moving the PC
       return 12;
     } else {
+      op.size = 2;
       return 8;
     }
   }
 
   function JR_Z_r8(op: Opcode): number {
-    op.size = 2;
+    op.size = 0; // Normally 2, but we need to JUMP and discard the size.;
     const offset: number = op.signedByte;
 
     if (isFlagSet(Flags.Z)) {
-      pc.jump(pc.offset + offset);
+      pc.jump(pc.offset + 2 + offset); // Add 2 here because we aren't moving the PC
       return 12;
     } else {
+      op.size = 2;
       return 8;
     }
   }
 
   function JR_NC_r8(op: Opcode): number {
-    op.size = 2;
+    op.size = 0; // Normally 2, but we need to JUMP and discard the size.;
     const offset: number = op.signedByte;
 
     if (!isFlagSet(Flags.C)) {
-      pc.jump(pc.offset + offset);
+      pc.jump(pc.offset + 2 + offset); // Add 2 here because we aren't moving the PC
       return 12;
     } else {
+      op.size = 2;
       return 8;
     }
   }
 
   function JR_C_r8(op: Opcode): number {
-    op.size = 2;
+    op.size = 0; // Normally 2, but we need to JUMP and discard the size.;
     const offset: number = op.signedByte;
 
     if (isFlagSet(Flags.C)) {
-      pc.jump(pc.offset + offset);
+      pc.jump(pc.offset + 2 + offset); // Add 2 here because we aren't moving the PC
       return 12;
     } else {
+      op.size = 2;
       return 8;
     }
   }
 
   function JP_d16(op: Opcode): number {
-    op.size = 3;
+    op.size = 0; // Normally 3, but we need to JUMP and discard the size.;
 
     const address: number = op.word;
 
@@ -862,10 +866,10 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function CALL(op: Opcode): number {
-    op.size = 3;
+    op.size = 0; // Normally 3, but we need to JUMP and discard the size.;
 
     const address: number = op.word;
-    const nextInstructionAddress: number = pc.offset;
+    const nextInstructionAddress: number = pc.offset + 3; // Add 3 here since it's the *next* instruction.
 
     stackPush(nextInstructionAddress);
 
@@ -875,7 +879,8 @@ export default function createOperations(vm: VirtualMachine): Operations {
   }
 
   function RET(op: Opcode): number {
-    op.size = 1;
+    op.size = 0; // Normally 1, but we need to JUMP and discard the size.;
+
     pc.jump(stackPop());
     return 16;
   }
@@ -1059,11 +1064,18 @@ export default function createOperations(vm: VirtualMachine): Operations {
 
   return {
     execOp(opcode: Opcode): number {
-      const table: OpTable = readCB ? (readCB = false, Cb) : Op;
-      const cycles = table[opcode.instruction](opcode);
-      vm.cycleCount += cycles;
-      vm.pc.increment(opcode.size);
-      return cycles;
+      if (readCB) {
+        readCB = false;
+        const cycles = Cb[opcode.instruction](opcode);
+        vm.cycleCount += cycles;
+        vm.pc.increment(opcode.size);
+        return cycles;
+      } else {
+        const cycles = Op[opcode.instruction](opcode);
+        vm.cycleCount += cycles;
+        vm.pc.increment(opcode.size);
+        return cycles;
+      }
     }
   };
 }
