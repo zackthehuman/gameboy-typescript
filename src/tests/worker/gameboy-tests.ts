@@ -276,4 +276,38 @@ export default function gameboyTests() {
     assert.equal(vm.registers.HL, 0x1234, 'HL should be 0x1234');
     assert.equal(isFlagSet(vm, Flags.N), false, 'subtract flag should be unset');
   });
+
+  QUnit.test('CB takes 4 cycles, increments PC by 1', function(assert) {
+    const vm = makeVM();
+
+    vm.loadROM(new Uint8Array([0xCB]));
+    vm.didFinishBootROM = true;
+
+    const op = createOperations(vm);
+    const cycleCount = op.execOp(new OpcodeView(vm.memory, 0x00));
+
+    assert.equal(cycleCount, 4, 'executed cycle count should be 4');
+    assert.equal(vm.cycleCount, 4, 'VM\'s cycle count should advance by 4');
+    assert.equal(vm.pc.offset, 1, 'PC should be 1');
+  });
+
+  QUnit.test('CB_RL_C takes 4 + 8 cycles, increments PC by 1 + 1', function(assert) {
+    const vm = makeVM();
+
+    vm.loadROM(new Uint8Array([0xCB, 0x11]));
+    vm.didFinishBootROM = true;
+
+    const op = createOperations(vm);
+    let cycleCount = op.execOp(new OpcodeView(vm.memory, vm.pc.offset));
+
+    assert.equal(cycleCount, 4, 'executed cycle count should be 4');
+    assert.equal(vm.cycleCount, 4, 'VM\'s cycle count should advance by 4');
+    assert.equal(vm.pc.offset, 1, 'PC should be 1');
+
+    cycleCount = op.execOp(new OpcodeView(vm.memory, vm.pc.offset));
+
+    assert.equal(cycleCount, 8, 'executed cycle count should now be 8');
+    assert.equal(vm.cycleCount, 12, 'VM\'s cycle count should advance by 4');
+    assert.equal(vm.pc.offset, 2, 'PC should be 2');
+  });
 }
